@@ -59,19 +59,39 @@
 
 ```text
 pnpm install
+pnpm --dir desktop-1tmt install
 pnpm run build
 pnpm dsh web
 ```
 
 浏览器打开本机页面后，同样走员工登录。
 
+`desktop-1tmt/` **不在** pnpm workspace 里，避免打桌面壳时改动根目录 `pnpm-lock.yaml`；它单独装 Electron。根仓库的依赖以 `master` 为准。
+
+---
+
+## 依赖怎么跟 master 对齐
+
+- **`master` = 依赖与上游源码的基准**；本分支只叠 1TMT 业务改造（登录、MCP、桌面壳、文档）。
+- 合并 / 变基 `master` 后：冲突时优先保留 **master 的 `pnpm-lock.yaml`**，再执行一次 `pnpm install`（只为登记本分支新增的 workspace 包，如 `pgy-login`）。
+- 不要在本分支随便跑会重算整棵依赖树的升级；`micromark-util-types` 已 pin 为与 master 相同的 `2.0.2`，防止双版本把 typecheck 弄挂。
+- 拉上游更新示例：
+
+```text
+git fetch origin master
+git merge origin/master
+pnpm install
+pnpm --dir desktop-1tmt install
+```
+
 ---
 
 ## 打 Windows 安装包
 
-在仓库根目录：
+先装好桌面壳依赖，再在仓库根目录：
 
 ```text
+pnpm --dir desktop-1tmt install
 pnpm run pack:desktop-1tmt
 ```
 

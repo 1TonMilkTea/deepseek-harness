@@ -7,8 +7,6 @@ packages:
   - native/system/packages/*
   # Product assemblies over the package tier; apps/cli owns the `dsh` bin.
   - apps/*
-  # Private 1TMT Windows desktop shell; never published to npm.
-  - desktop-1tmt
   # Private package owning repository-level benchmark dependencies.
   - benchmarks
   - website
@@ -23,8 +21,9 @@ linkWorkspacePackages: true
 overrides:
   '@deepseek-ai/cosmokit': 'link:vendor/cosmokit'
   '@deepseek-ai/schemastery': 'link:vendor/schemastery'
-  # Keep one micromark types package so mdast/micromark extensions typecheck.
-  micromark-util-types: '2.0.3'
+  # Keep the same single version master already locks; do not let a fresh
+  # `pnpm install` introduce a second micromark-util-types copy.
+  micromark-util-types: '2.0.2'
 
 peerDependencyRules:
   allowedVersions:
