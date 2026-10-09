@@ -1,0 +1,4 @@
+# Config-only workspace file for isolated installs of this package.
+# electron-builder pulls electron-winstaller (Squirrel); we ship NSIS.
+allowBuilds:
+  electron-winstaller: set this to true or false

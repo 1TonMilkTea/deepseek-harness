@@ -72,7 +72,9 @@ describe('desktop installer pack', () => {
     expect(out).toContain(`node-v${NODE_VERSION}-win-x64.zip`)
     expect(out).toContain(`copy node.exe -> ${join(payload, 'runtime', 'node.exe')}`)
     const install = out.indexOf('C:\\tools\\pnpm.cjs install')
-    const shellInstall = out.indexOf(`--dir ${join(root, 'desktop-1tmt')} install --ignore-workspace`)
+    const shellInstall = out.indexOf(
+      `--dir ${join(root, 'desktop-1tmt')} install --ignore-workspace --config.strict-dep-builds=false`,
+    )
     const shell = out.indexOf('run build', shellInstall)
     const installer = out.indexOf('exec electron-builder --win nsis --x64 --publish never')
     expect(install).toBeGreaterThan(0)
