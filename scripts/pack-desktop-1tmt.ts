@@ -191,6 +191,9 @@ class DesktopPack {
       // `pnpm deploy` prunes the development install; restore it before the shell build needs Electron.
       await this.runPnpm('restore development dependencies', ['install'])
     }
+    // The desktop shell is outside the pnpm workspace so the root install
+    // never materializes `desktop-1tmt/node_modules` (tsc / electron-builder).
+    await this.runPnpm('install desktop shell', ['--dir', shellRoot, 'install', '--ignore-workspace'])
     await this.runPnpm('build desktop shell', ['--dir', shellRoot, 'run', 'build'])
     await this.buildInstaller()
     this.printResult()

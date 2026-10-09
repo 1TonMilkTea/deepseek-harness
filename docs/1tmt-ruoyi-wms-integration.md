@@ -58,9 +58,9 @@ pnpm dsh --profile web
 pnpm run pack:desktop-1tmt
 ```
 
-产物：`dist/desktop-1tmt/installer/Harness-Setup-<版本>-x64.exe`（`dist/` 已 gitignore，不要提交安装包、payload、Node 缓存）。`-- --skip-build` 跳过全量构建，`-- --dry-run` 只打印步骤。首次打包 electron-builder 需联网下载 Electron 与 NSIS；国内网络慢时可先设 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 与 `ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/`。
+产物：`dist/desktop-1tmt/installer/Harness-Setup-<版本>-x64.exe`（`dist/` 已 gitignore，不要提交安装包、payload、Node 缓存）。`-- --skip-build` 跳过全量构建，`-- --dry-run` 只打印步骤。首次打包 electron-builder 需联网下载 Electron 与 NSIS；国内网络慢时可先设 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 与 `ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/`。打包脚本会在打安装包前单独执行 `pnpm --dir desktop-1tmt install`（桌面壳不在根 workspace 里）。
 
-开发时调试桌面壳：先打一次包生成 `dist/desktop-1tmt/payload`，再 `pnpm --dir desktop-1tmt start`。
+开发时调试桌面壳：先 `pnpm --dir desktop-1tmt install`，打一次包生成 `dist/desktop-1tmt/payload`，再 `pnpm --dir desktop-1tmt start`。
 
 安装与运行：
 
