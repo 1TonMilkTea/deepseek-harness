@@ -58,27 +58,26 @@ describe('ic_ds_ icon set', () => {
 })
 
 describe('FishLogo', () => {
-  it('renders the fish path in currentColor at the native ratio', () => {
+  it('renders a square currentColor mask of the brand mark', () => {
     const { container } = render(<primitives.FishLogo />)
-    const svg = container.querySelector('svg')!
-    expect(svg.getAttribute('width')).toBe('24')
-    expect(Number(svg.getAttribute('height'))).toBeCloseTo(17.66, 1)
-    expect(svg.getAttribute('viewBox')).toBe('0 0 23.16 17.04')
-    expect(container.querySelectorAll('path')).toHaveLength(1)
-    expect(container.innerHTML).toContain('currentColor')
-    expect(container.innerHTML).not.toContain('M0 0L23.16')
+    const mark = container.querySelector('span')!
+    expect(mark.getAttribute('aria-hidden')).toBe('true')
+    expect(mark.style.width).toBe('24px')
+    expect(mark.style.height).toBe('24px')
+    expect(mark.style.backgroundColor.toLowerCase()).toBe('currentcolor')
+    expect(mark.style.maskImage).toMatch(/^url\("?data:image\/png;base64,/)
   })
 })
 
 describe('BrandWordmark', () => {
   it('can render the name artwork with or without its leading mark', () => {
-    const view = render(<primitives.BrandWordmark />)
-    const svg = view.container.querySelector('svg')!
-    expect(svg.getAttribute('width')).toBe('182')
-    expect(svg.getAttribute('viewBox')).toBe('0 0 182 24')
+    const withMark = render(<primitives.BrandWordmark />)
+    expect(withMark.container.querySelectorAll('span[aria-hidden="true"]').length).toBeGreaterThanOrEqual(1)
+    expect(withMark.container.querySelector('svg')).toBeTruthy()
 
-    view.rerender(<primitives.BrandWordmark includeMark={false} />)
-    expect(svg.getAttribute('width')).toBe('156')
+    const without = render(<primitives.BrandWordmark includeMark={false} />)
+    const svg = without.container.querySelector('svg')!
     expect(svg.getAttribute('viewBox')).toBe('26 0 156 24')
+    expect(without.container.innerHTML).not.toMatch(/dsh-wordmark-whale/)
   })
 })

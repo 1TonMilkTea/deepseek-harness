@@ -221,6 +221,7 @@ export class SessionController extends TypertRemoteService {
    */
   @Remote('list')
   async list(_request: SessionListRequest, signal: AbortSignal): Promise<SessionListValue> {
+    this.commands.assertLoggedIn()
     return { items: await this.listState.list(signal) }
   }
 
@@ -232,6 +233,7 @@ export class SessionController extends TypertRemoteService {
    */
   @Remote('search')
   search(request: SessionSearchRequest, signal: AbortSignal): Promise<SessionSearchValue> {
+    this.commands.assertLoggedIn()
     return this.listState.search(request.query, signal)
   }
 

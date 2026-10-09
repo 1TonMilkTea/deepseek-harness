@@ -4,14 +4,16 @@
  */
 
 import { describe, expect, it } from 'vitest'
+import { Context } from '@deepseek-ai/cordis'
 import { SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
-import type { SessionEvent } from '@deepseek-ai/dsh-session'
+import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import {
   SessionAlreadyExistsError,
   SessionAlreadyOwnedError,
   SessionFormatUnsupportedError,
   SessionHandleClosedError,
   SessionOwnershipLostError,
+  SessionPersistence,
   SessionPersistenceCorruptionError,
   SessionPersistenceNotFoundError,
   SessionPersistenceRevision,
@@ -23,7 +25,7 @@ import {
   sessionFormatVersionRefusal,
   validateStoredEvents,
 } from '../src/index.ts'
-import type { SessionLocation } from '../src/index.ts'
+import type { SessionAccess, SessionHandle, SessionLocation } from '../src/index.ts'
 import { meta } from './contract.ts'
 
 const LOCATION: SessionLocation = { kind: 'jsonl', path: '/store/session.jsonl' }
@@ -318,5 +320,32 @@ describe('error vocabulary', () => {
 describe('SessionPersistenceRevision', () => {
   it('brands the backend token without changing its runtime value', () => {
     expect(SessionPersistenceRevision('rev:1')).toBe('rev:1')
+  })
+})
+
+describe('SessionPersistence root binding defaults', () => {
+  it('refuses getBaseRoot and bindRoot when a backend does not override them', async () => {
+    class StubPersistence extends SessionPersistence {
+      create(_header: SessionHeader): Promise<SessionHandle> {
+        throw new Error('unimplemented')
+      }
+      open(_id: SessionId, _access: SessionAccess): Promise<SessionHandle> {
+        throw new Error('unimplemented')
+      }
+      flush(): Promise<void> {
+        return Promise.resolve()
+      }
+      stat(): Promise<undefined> {
+        return Promise.resolve(undefined)
+      }
+      list(): Promise<readonly never[]> {
+        return Promise.resolve([])
+      }
+    }
+
+    const persistence = new StubPersistence(new Context())
+    expect(() => persistence.getBaseRoot()).toThrow(/does not expose a filesystem root/)
+    await expect(persistence.bindRoot('/tmp/unused')).rejects.toThrow(/does not support bindRoot/)
+    await expect(persistence.closeOpenWriters()).resolves.toBeUndefined()
   })
 })

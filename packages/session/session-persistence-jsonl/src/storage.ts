@@ -500,6 +500,32 @@ export class JsonlBackendTracker {
   }
 
   /**
+   * Whether any write claim or open write handle still owns this backend.
+   * @returns true while a writer map entry or write handle remains.
+   */
+  hasOpenWriters(): boolean {
+    return this.writers.size > 0
+  }
+
+  /**
+   * Await close on every open write handle so a later `bindRoot` is not
+   * refused. Idempotent with an in-flight `session/disposed` close.
+   * @throws {AggregateError} when one or more closes reject.
+   */
+  async closeOpenWriters(): Promise<void> {
+    const errors: unknown[] = []
+    for (const handle of [...this.openHandles]) {
+      if (handle.access !== 'write') continue
+      try {
+        await handle.close()
+      } catch (error: unknown) {
+        errors.push(error)
+      }
+    }
+    if (errors.length > 0) throw new AggregateError(errors, `${this.name} closeOpenWriters failed`)
+  }
+
+  /**
    * Drain and flush every active write handle — the service-wide durability
    * barrier behind `SessionPersistence.flush`.
    * @throws {AggregateError} naming each session whose flush failed; the

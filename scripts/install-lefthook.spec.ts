@@ -219,6 +219,20 @@ function runInstaller(
 // Rationale and the paired hook budget are in
 // .agents/notes/archived/testing/2026-08-29-windows-lane-hook-and-lefthook-budget.md.
 describe('worktree-local Lefthook installer', { timeout: 90_000 }, () => {
+  it('skips when the lefthook package is not installed', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'dsh-lefthook-prod-'))
+    fixtures.push(directory)
+    const copied = join(directory, 'install-lefthook.mjs')
+    writeFileSync(copied, readFileSync(installer))
+    const result = commandResult(process.execPath, [copied], directory, {
+      ...process.env,
+      CI: 'false',
+      GITHUB_ACTIONS: 'false',
+    })
+    expect(result.status, result.stderr).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+
   for (const [label, extraEnv] of [
     ['CI', { CI: 'true' }],
     ['GitHub Actions', { GITHUB_ACTIONS: 'true' }],

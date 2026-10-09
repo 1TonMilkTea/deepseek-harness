@@ -1,0 +1,65 @@
+{
+  "name": "1tmt-harness-desktop",
+  "productName": "Harness",
+  "description": "1TMT Windows desktop shell: runs the bundled dsh web in the background and shows it in an Electron window",
+  "version": "0.1.5",
+  "author": "1TMT",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsc -p tsconfig.json && electron ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "electron": "^44.0.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^6.0.3"
+  },
+  "build": {
+    "appId": "com.1tmt.harness",
+    "productName": "Harness",
+    "artifactName": "Harness-Setup-${version}-x64.${ext}",
+    "directories": {
+      "output": "../dist/desktop-1tmt/installer",
+      "buildResources": "assets"
+    },
+    "files": [
+      "lib/**",
+      "assets/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist/desktop-1tmt/payload",
+        "to": "payload"
+      }
+    ],
+    "asar": false,
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.png",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Harness",
+      "uninstallDisplayName": "Harness",
+      "installerLanguages": [
+        "zh_CN"
+      ],
+      "language": "2052",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

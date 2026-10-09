@@ -505,6 +505,30 @@ describe('JsonlSessionPersistence: format helpers', () => {
     expect((await stat(rawLogPath(resolve(absoluteRoot), '/work', m.id))).isFile()).toBe(true)
     await fiber.dispose()
   })
+
+  it('bindRoot retargets create and list, and refuses while a write handle is open', async () => {
+    const absoluteRoot = await freshRoot()
+    const employeeRoot = join(absoluteRoot, 'employees', '12__E01')
+    const ctx = new Context()
+    const fiber = await ctx.plugin(JsonlSessionPersistence, {
+      root: absoluteRoot,
+      compression: 'none',
+    })
+    expect(ctx.sessionPersistence.getBaseRoot()).toBe(resolve(absoluteRoot))
+
+    await ctx.sessionPersistence.create(meta('open-writer', '/work'))
+    await expect(ctx.sessionPersistence.bindRoot(employeeRoot))
+      .rejects.toThrow(/cannot bindRoot while write handles are open/)
+    await ctx.sessionPersistence.closeOpenWriters()
+
+    await ctx.sessionPersistence.bindRoot(employeeRoot)
+    const m = meta('scoped-session', '/work')
+    await writeLog(ctx.sessionPersistence, m, oneTurnLog())
+    expect((await stat(rawLogPath(employeeRoot, '/work', m.id))).isFile()).toBe(true)
+    const listed = await ctx.sessionPersistence.list()
+    expect(listed.map(row => row.header.id)).toEqual([m.id])
+    await fiber.dispose()
+  })
 })
 
 describe('JsonlSessionPersistence: stored-format refusals', () => {

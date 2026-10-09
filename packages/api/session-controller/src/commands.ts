@@ -80,11 +80,26 @@ export class SessionCommandController {
   ) {}
 
   /**
+   * Refuse Session mutations and cold list/search when WMS login is required.
+   */
+  assertLoggedIn(): void {
+    const gate = this.ctx.get('pgyLogin') as { isLoggedIn(): boolean } | undefined
+    if (gate !== undefined && !gate.isLoggedIn()) {
+      throw new RemoteError('pgy/login-required', 'WMS login is required before using this session', {})
+    }
+  }
+
+  private requireLogin(): void {
+    this.assertLoggedIn()
+  }
+
+  /**
    * Create or idempotently adopt one ordinary Session.
    * @param request - requested identity, location, and Agent preset.
    * @returns the Session identity and resolved preset when configured.
    */
   async create(request: SessionCreateRequest): Promise<SessionCreateValue> {
+    this.requireLogin()
     if (request.workspaceId !== undefined && request.cwd !== undefined) {
       throw new RemoteError('gateway/bad-request', 'session.create accepts workspaceId or cwd, not both', {})
     }
@@ -200,6 +215,7 @@ export class SessionCommandController {
    * @returns the new Session identity.
    */
   async fork(request: SessionForkRequest): Promise<SessionForkValue> {
+    this.requireLogin()
     let atSeq: ReturnType<typeof SessionSeq> | undefined
     try {
       atSeq = request.atSeq === undefined ? undefined : SessionSeq(request.atSeq)
@@ -300,6 +316,7 @@ export class SessionCommandController {
    * @returns acknowledgement that the Agent accepted the prompt.
    */
   async prompt(request: SessionPromptRequest): Promise<SessionPromptValue> {
+    this.requireLogin()
     if (!hasPromptContent(request.content)) {
       throw new RemoteError(
         'gateway/bad-request',

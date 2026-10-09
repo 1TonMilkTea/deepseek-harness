@@ -196,6 +196,32 @@ export abstract class SessionPersistence extends Service {
    * @returns one snapshot per stored session.
    */
   abstract list(options?: SessionPersistenceListOptions): Promise<readonly SessionPersistenceSnapshot[]>
+
+  /**
+   * Absolute filesystem root configured at construction, before any tenant bind.
+   * Filesystem backends override this; others refuse.
+   * @returns the construction-time root directory.
+   */
+  getBaseRoot(): string {
+    throw new Error(`${this.name} does not expose a filesystem root`)
+  }
+
+  /**
+   * Retarget subsequent create/list/open paths to an absolute root directory.
+   * Filesystem backends override this; others refuse. Refuses while any write
+   * handle is still open.
+   * @param absoluteRoot - destination directory (created when absent).
+   */
+  async bindRoot(_absoluteRoot: string): Promise<void> {
+    throw new Error(`${this.name} does not support bindRoot`)
+  }
+
+  /**
+   * Drain and close every open write handle so {@link bindRoot} can retarget.
+   * Filesystem backends override this; the default is a no-op for backends
+   * that do not track open writers.
+   */
+  async closeOpenWriters(): Promise<void> {}
 }
 
 export default SessionPersistence

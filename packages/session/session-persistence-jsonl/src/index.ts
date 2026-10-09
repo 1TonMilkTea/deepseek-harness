@@ -55,6 +55,7 @@ import {
 } from './generation.ts'
 
 export type { JsonlCompression } from './format.ts'
+export { encodeSegment } from './format.ts'
 
 /**
  * Internal handoff-reuse policy, not deployment configuration: a cold
@@ -241,6 +242,8 @@ class JsonlSessionPersistence extends SessionPersistence {
   /** Backend label for diagnostics and effects; shadows `Service.name` without changing the service key. */
   override readonly name = 'session-persistence-jsonl'
 
+  /** Construction-time root; {@link bindRoot} never changes this value. */
+  private readonly baseRoot: string
   private root: string
   private compression: JsonlCompression
   private rootEncodingCheck: Promise<void> | undefined
@@ -267,7 +270,8 @@ class JsonlSessionPersistence extends SessionPersistence {
       )
     }
     // Resolve once so later process.cwd() changes cannot split one backend across roots.
-    this.root = resolve(config.root)
+    this.baseRoot = resolve(config.root)
+    this.root = this.baseRoot
     this.compression = config.compression ?? DEFAULT_COMPRESSION
     this.generationFormat = {
       currentVersion: sessionFormatCatalog.currentVersion,
@@ -283,6 +287,41 @@ class JsonlSessionPersistence extends SessionPersistence {
     }
     this.assertUsableRoot()
     this.tracker.install(ctx)
+  }
+
+  /**
+   * Absolute filesystem root configured at construction, before any tenant bind.
+   * @returns the construction-time root directory.
+   */
+  override getBaseRoot(): string {
+    return this.baseRoot
+  }
+
+  /**
+   * Drain and close every open write handle so {@link bindRoot} can retarget.
+   */
+  override async closeOpenWriters(): Promise<void> {
+    await this.tracker.closeOpenWriters()
+  }
+
+  /**
+   * Retarget subsequent create/list/open paths to an absolute root directory.
+   * Clears cold-log memos so a later read cannot serve a previous root's parse.
+   * Callers that still hold live Agents must dispose them and
+   * {@link closeOpenWriters} first; this method refuses while writers remain.
+   * @param absoluteRoot - destination directory (created when absent).
+   */
+  override async bindRoot(absoluteRoot: string): Promise<void> {
+    if (this.tracker.hasOpenWriters()) {
+      throw new Error('session-persistence-jsonl: cannot bindRoot while write handles are open')
+    }
+    const next = resolve(absoluteRoot)
+    await mkdir(next, { recursive: true, mode: 0o700 })
+    this.root = next
+    this.rootEncodingCheck = undefined
+    this.coldLogMemo.clear()
+    this.migrationPreparations.clear()
+    this.assertUsableRoot()
   }
 
   /**

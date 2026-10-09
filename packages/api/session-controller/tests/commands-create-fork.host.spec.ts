@@ -12,7 +12,7 @@ import {
   ApiSessionCwdConflict,
 } from '../src/agent.ts'
 import { SessionCommandController } from '../src/commands.ts'
-import { installSessionReadTestServices, testSessionPersistence } from './test-remote.ts'
+import { createSessionTestRemote, installSessionReadTestServices, testSessionPersistence } from './test-remote.ts'
 
 async function expectFailure(operation: Promise<unknown>, code: string): Promise<void> {
   await expect(operation).rejects.toMatchObject({ code })
@@ -41,6 +41,26 @@ async function baseContext(): Promise<Context> {
 }
 
 describe('Session creation failures', () => {
+  it('refuses create, fork, and prompt until WMS login succeeds', async () => {
+    const ctx = await baseContext()
+    ctx.provide('workspaceRegistry', { get: () => undefined, list: () => [] } as never)
+    ctx.provide('pgyLogin', { isLoggedIn: () => false } as never)
+    const controller = new SessionCommandController(ctx, controllerAgents(), '/default')
+
+    await expectFailure(controller.create({}), 'pgy/login-required')
+    await expectFailure(controller.fork({ sessionId: 'session-a' as SessionId }), 'pgy/login-required')
+    await expectFailure(controller.prompt({
+      sessionId: 'session-a' as SessionId,
+      requestId: 'req-1' as never,
+      mode: 'queue',
+      content: [{ type: 'text', text: 'hi' }],
+    }), 'pgy/login-required')
+    expect(() => controller.assertLoggedIn()).toThrow(
+      expect.objectContaining({ code: 'pgy/login-required' }),
+    )
+    await ctx.fiber.dispose()
+  })
+
   it('mints an identity with the default cwd when no explicit target is supplied', async () => {
     const ctx = await baseContext()
     ctx.provide('workspaceRegistry', { get: () => undefined, list: () => [] } as never)
@@ -280,6 +300,26 @@ describe('Session fork failures', () => {
     const options = create.mock.calls[0]?.[0]
     if (options === undefined) throw new Error('Agent creation was not attempted')
     expect(options.meta?.agentPreset).toBe('minimal')
+    await ctx.fiber.dispose()
+  })
+})
+
+describe('Session list and search login gate', () => {
+  it('refuses list and search until WMS login succeeds', async () => {
+    const ctx = await baseContext()
+    ctx.provide('pgyLogin', { isLoggedIn: () => false } as never)
+    const remote = createSessionTestRemote(ctx, {
+      defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
+      cwd: '/default',
+    })
+    await expect(remote.list({})).resolves.toMatchObject({
+      ok: false,
+      error: expect.objectContaining({ code: 'pgy/login-required' }),
+    })
+    await expect(remote.search({ query: 'hi' })).resolves.toMatchObject({
+      ok: false,
+      error: expect.objectContaining({ code: 'pgy/login-required' }),
+    })
     await ctx.fiber.dispose()
   })
 })

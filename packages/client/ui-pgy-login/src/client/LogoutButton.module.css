@@ -1,0 +1,11 @@
+.wide {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.rail {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 0;
+  justify-content: center;
+}

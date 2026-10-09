@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'unsafe-inline'">
+  <title>Harness</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+      color: #1f2937;
+      background: #ffffff;
+      user-select: none;
+    }
+    img { width: 96px; height: 96px; }
+    .title { font-size: 22px; font-weight: 600; }
+    .hint { font-size: 13px; color: #6b7280; }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #4f46e5;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <img src="icon.png" alt="">
+  <div class="title">Harness</div>
+  <div class="spinner"></div>
+  <div class="hint">正在启动，首次打开可能需要几十秒…</div>
+</body>
+</html>
