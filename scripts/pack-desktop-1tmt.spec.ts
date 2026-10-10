@@ -68,7 +68,9 @@ describe('desktop installer pack', () => {
     expect(result.status).toBe(0)
     const out = result.stdout
     expect(out).toContain('skipping pnpm run build (--skip-build)')
-    expect(out).toContain('C:\\tools\\pnpm.cjs --filter @deepseek-ai/dsh deploy --legacy --prod --config.node-linker=hoisted')
+    expect(out).toContain(
+      'C:\\tools\\pnpm.cjs --filter @deepseek-ai/dsh deploy --legacy --prod --config.allow-unused-patches=true --config.node-linker=hoisted',
+    )
     expect(out).toContain(`require ${join(payload, 'app', 'lib', 'bin.js')}`)
     expect(out).toContain(`node-v${NODE_VERSION}-win-x64.zip`)
     expect(out).toContain(`copy node.exe -> ${join(payload, 'runtime', 'node.exe')}`)

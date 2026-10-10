@@ -231,6 +231,9 @@ class DesktopPack {
       'deploy',
       '--legacy',
       '--prod',
+      // Office / Desktop patches live in the workspace lockfile but are outside
+      // the `@deepseek-ai/dsh` production graph; same flag as build-exe-for-python-sdk.
+      '--config.allow-unused-patches=true',
       '--config.node-linker=hoisted',
       '--config.auto-install-peers=false',
       '--config.link-workspace-packages=true',
