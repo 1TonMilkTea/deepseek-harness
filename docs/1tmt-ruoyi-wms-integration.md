@@ -10,33 +10,33 @@
 业务员 PC
   桌面图标 Harness（Electron 窗口）
        → 后台无窗口 resources\payload\runtime\node.exe  app\lib\bin.js web --no-open   （仅 127.0.0.1）
+            │  窗口：若依根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
             │  窗口内登录：组织 / 员工编码 / 密码
-            │  Host：ctx.remote.pgyLogin → tools.execute(mcp__1tmt__…)
+            │  Host：ctx.remote.pgyLogin → 动态挂载 mcp-client → tools.execute(mcp__1tmt__…)
             ▼
-       RuoYi-Vue :8081  POST /mcp
-            Authorization: Bearer  与 application.yml 的 mcp.auth-token 相同
-            pgyListOrganizations / pgyWmsLogin
-            pgyKdeEnterpriseApiRules（企业版标准接口规则，业务调用先决）
-            pgyKdeExecuteBillQuery（标准列表，任意 FormId）
-            pgyListReceiveBills（收料通知单，底层同上）
+       RuoYi-Vue :8081
+            POST /mcp/client-sessions（匿名签发）/ DELETE（关程序销毁）
+            POST /mcp  Authorization: Bearer <会话令牌>
+            （运维旧路径仍可用静态 mcp.auth-token）
+            pgyListOrganizations / pgyWmsLogin / …
             管理员账号只在服务器 kde 配置里，不出现在登录页
 ```
 
-一人一进程。不要把 `dsh web` 绑到 `0.0.0.0`。登录成功后，本机会话落在 `$DSH_HOME/sessions/employees/<orgId>__<staffNumber>/`；本机**第一次**成功登录会把旧的共享会话目录一次性迁入该员工树，之后其他员工互不可见。侧栏「退出登录」会清掉本进程员工身份、把会话根绑回共享根并刷新页面，随后可换员工登录（不必重启 Host）。
+一人一进程。不要把 `dsh web` 绑到 `0.0.0.0`。业务员**只配地址、不填 Token**；地址存 `$DSH_HOME/1tmt-backend.json`，优先级：页面保存 > `DSH_1TMT_MCP_URL` / `配置.cmd` > 开发默认 `http://127.0.0.1:8081`。登录成功后，本机会话落在 `$DSH_HOME/sessions/employees/<orgId>__<staffNumber>/`；本机**第一次**成功登录会把旧的共享会话目录一次性迁入该员工树，之后其他员工互不可见。侧栏「退出登录」会清掉本进程员工身份、把会话根绑回共享根并刷新页面，随后可换员工登录（不必重启 Host）。
 
 ## 源码改动（本仓库）
 
 | 位置 | 作用 |
 |------|------|
-| `packages/api/pgy-login` | Host Remote：拉组织、完成 WMS 登录、进程内员工身份、一次性迁会话根并 `bindRoot`、`logout` |
-| `packages/client/ui-pgy-login` | 全屏登录层与侧栏退出登录；登录成功后刷新会话列表 |
+| `packages/api/pgy-login` | Host Remote：Base URL、会话令牌签发/销毁、动态挂载 MCP、拉组织、WMS 登录、`logout` |
+| `packages/client/ui-pgy-login` | 登录前「后端配置」、全屏登录、设置「后端 / 若依」、侧栏退出 |
 | `packages/api/session-controller` | 未登录时拒绝 create / fork / prompt / list / search（无 `pgyLogin` 服务的 profile 不拦） |
 | `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`：登录后切到员工目录 |
-| `packages/bundle/web-app/cordis.patch.yml` | 挂上 MCP `serverName: 1tmt`、登录 Remote、登录 UI；persona 强制先调规则 MCP |
-| `desktop-1tmt/` | Electron 桌面壳：读 `配置.cmd`、后台拉起 `dsh web --no-open`、在自己窗口里打开、关窗时结束整棵进程树 |
-| `scripts/pack-desktop-1tmt.ts` | 部署 `dsh` + 内置 Node 到 payload，再用 electron-builder 打 NSIS 安装包；中途 `pnpm install` 恢复开发依赖 |
+| `packages/bundle/web-app/cordis.patch.yml` | 挂登录 Remote / UI；MCP 由 `pgy-login` 运行时挂载；persona 强制先调规则 MCP |
+| `desktop-1tmt/` | Electron 桌面壳：读 `配置.cmd`、后台拉起 `dsh web`、关窗时 SIGTERM 再强杀 |
+| `scripts/pack-desktop-1tmt.ts` | 部署 `dsh` + 内置 Node 到 payload，再用 electron-builder 打 NSIS 安装包 |
 
-MCP 公开工具名：`mcp__1tmt__pgyListOrganizations`、`mcp__1tmt__pgyWmsLogin`、`mcp__1tmt__pgyKdeEnterpriseApiRules`、`mcp__1tmt__pgyKdeExecuteBillQuery`、`mcp__1tmt__pgyListReceiveBills`。环境变量：`DSH_1TMT_MCP_URL`（默认 `http://127.0.0.1:8081/mcp`，仅本机同机部署；Harness 在其他电脑时改为 `http://若依IP:8081/mcp`）、`DSH_1TMT_MCP_TOKEN`（须与若依 `mcp.auth-token` 一致）。安装包用户改 `%LOCALAPPDATA%\Harness\配置.cmd`（文件内有中文备注）。
+MCP 公开工具名：`mcp__1tmt__pgyListOrganizations`、`mcp__1tmt__pgyWmsLogin`、`mcp__1tmt__pgyKdeEnterpriseApiRules`、`mcp__1tmt__pgyKdeExecuteBillQuery`、`mcp__1tmt__pgyListReceiveBills`。安装包用户主路径在窗口配地址；`配置.cmd` 仅 IT 预置。
 
 查收料通知单：先 `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)`，再 `pgyListReceiveBills`（内部即标准 ExecuteBillQuery）。其他未登记单据：规则 → `pgyKdeExecuteBillQuery`。
 
@@ -66,7 +66,8 @@ pnpm run pack:desktop-1tmt
 
 - 安装包按用户安装（默认 `%LOCALAPPDATA%\Programs\Harness`），无需管理员，未签名，Windows 提示未知发布者时选「仍要运行」。
 - 双击桌面「Harness」：先显示启动页，后台 `dsh web` 就绪后在同一窗口打开登录页；不弹黑窗、不开浏览器。只允许运行一个实例。
-- 用户数据与安装目录分开，固定在 `%LOCALAPPDATA%\Harness`：`配置.cmd`（首次启动自动生成，含中文备注；改完关闭并重新打开 Harness 生效）、`data\`（会话与设置，即 `DSH_HOME`）、`logs\host.log`（后台输出）。升级或卸载不会动这三项。
+- 用户数据与安装目录分开，固定在 `%LOCALAPPDATA%\Harness`：`配置.cmd`（IT 可选预置地址）、`data\`（会话、设置、`1tmt-backend.json`，即 `DSH_HOME`）、`logs\host.log`。升级或卸载不会动这三项。
+- 业务员主路径在窗口填写若依根地址（设置 → 后端 / 若依 可改）；关程序时尽量 `DELETE` 销毁会话令牌。
 - 后台启动失败或超时会弹窗，可直接打开配置文件或日志目录。
 
 从旧版（`启动.bat` / Inno 安装包）升级：旧卸载程序会删掉它装的 `配置.cmd`，先备份 `%LOCALAPPDATA%\Harness\配置.cmd`，卸载旧版后再装新版并放回该文件；`data\` 不受影响。

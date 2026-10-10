@@ -21,12 +21,13 @@ function run(env: NodeJS.ProcessEnv, ...args: string[]) {
 }
 
 describe('desktop 配置.cmd', () => {
-  it('defaults MCP URL and token to the RuoYi local development pair', () => {
+  it('defaults optional IT Base URL; token stays commented for the salesman path', () => {
     expect(parseConfigCmd(configTemplate())).toEqual({
-      DSH_1TMT_MCP_URL: 'http://127.0.0.1:8081/mcp',
-      DSH_1TMT_MCP_TOKEN: 'local-mcp-change-me',
+      DSH_1TMT_MCP_URL: 'http://127.0.0.1:8081',
     })
     expect(configTemplate()).toContain('关闭并重新打开 Harness 生效')
+    expect(configTemplate()).toContain('REM set "DSH_1TMT_MCP_TOKEN=local-mcp-change-me"')
+    expect(configTemplate()).toContain('窗口内')
   })
 
   it('reads quoted and bare set lines and ignores comments', () => {

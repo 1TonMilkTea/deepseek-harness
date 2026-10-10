@@ -2,7 +2,7 @@
 
 面向本仓库相对上游 `c288ba2`（Import DeepSeek Harness）之后的集成提交。说明每次**改了什么、代码怎么走、为什么这么改**。联调操作见 [1tmt-ruoyi-wms-integration.md](./1tmt-ruoyi-wms-integration.md)。对端若依提交见 RuoYi-Vue 仓库 `docs/1tmt-PGY版本说明.md`。
 
-当前分支 tip：`0b37d21`（`master`）。
+当前分支 tip：见 `1tmt-deepseek-harness-windows` 最新提交（含「客户端专属 MCP 会话令牌」）。
 
 ---
 
@@ -10,7 +10,8 @@
 
 | 能力 | 怎么实现的 |
 |------|------------|
-| 本机 Web 调若依 MCP | `web-app` 挂 `@deepseek-ai/dsh-mcp-client`，`serverName: 1tmt`，工具名 `mcp__1tmt__*` |
+| 本机 Web 调若依 MCP | `pgy-login` 运行时动态挂载 `@deepseek-ai/dsh-mcp-client`（`serverName: 1tmt`），工具名 `mcp__1tmt__*` |
+| 业务员只配若依地址 | 页面 / 设置填 Base URL → `POST /mcp/client-sessions` 领会话令牌；关程序 `DELETE` |
 | 员工 WMS 登录门闩 | Host `pgyLogin` Remote + 全屏 `ui-pgy-login`；未登录拒绝 create/fork/prompt/list/search |
 | 按员工隔离本机会话 | 登录后 `sessionPersistence.bindRoot(…/employees/<orgId>__<staffNumber>/)`；首次登录迁旧共享目录 |
 | 换人登录 | 侧栏「退出登录」→ dispose Agents → `closeOpenWriters` → 绑回 baseRoot → 页面 reload |
@@ -221,12 +222,46 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 
 ---
 
+### 客户端专属 MCP 会话令牌 + 页面配置若依地址
+
+**改了什么**
+
+- `packages/api/pgy-login`
+  - `backend-config.ts`：`$DSH_HOME/1tmt-backend.json` 只存地址；优先级 页面 > `DSH_1TMT_MCP_URL` > 开发默认。
+  - `session-client.ts`：`POST/DELETE {base}/mcp/client-sessions`。
+  - `index.ts`：Remote `getBackendConfig` / `setBackendConfig`；启动或改地址后签发令牌并 `ctx.plugin(mcp-client)` 热挂载；dispose / SIGTERM 时销毁会话。
+- `packages/client/ui-pgy-login`
+  - 登录前「后端配置」表单；设置页新增「后端 / 若依」区块；文案不提 Token。
+- `cordis.patch.yml`：去掉启动时写死的 `mcp-1tmt` url/headers；由 `pgy-login` 运行时挂载。
+- `desktop-1tmt`：`before-quit` 先 `SIGTERM`（给 Host 发 DELETE 的时间），超时再 `taskkill`；`配置.cmd` 改为 IT 可选预置 Base URL。
+- 文档：`README-1TMT.md`、`docs/1tmt-ruoyi-wms-integration.md`；Host 单测 `backend-config` / `pgy-login`。
+
+**逻辑**
+
+```
+未配置地址 → LoginOverlay 显示「后端配置」
+保存 Base URL → setBackendConfig
+  → 写 1tmt-backend.json
+  → POST /mcp/client-sessions → Bearer 会话令牌
+  → dispose 旧 mcp-client → 挂载新实例（url={base}/mcp）
+  → 再 listOrganizations → 员工登录表单
+设置里改地址 → 同上重连
+关程序 → Host DELETE 会话；桌面壳 SIGTERM → 短等待 → 强杀
+```
+
+**为什么**
+
+业务员不应手填共享 MCP Token。地址可在页面配置；令牌由若依签发、Redis 记账、关程序销毁。静态 `mcp.auth-token` / `DSH_1TMT_MCP_TOKEN` 仍留给运维旧路径。
+
+---
+
 ## 开发机验证清单
 
-1. 改 Host（如 `pgy-login`）：重启 `pnpm dsh web` 即可（tsx 源码启动）。
-2. 改 Client 插件（如 `ui-pgy-login`）：对该包 `tsc -b` + `pnpm run bundle`，再重启 web；或整库 `pnpm run build`。
+1. 改 Host（如 `pgy-login`）：对该包 `tsc -b tsconfig.host.json` + `pnpm run bundle`（必要时再跑 typert 生成），重启 `pnpm dsh web`。
+2. 改 Client 插件（如 `ui-pgy-login`）：对该包 `pnpm run bundle`，再重启 web；或整库 `pnpm run build`。
 3. 改页面壳/品牌：`pnpm run build:web` 后重启。
 4. 不知道改了哪些：根目录 `pnpm run build`，再重启 + 浏览器强制刷新。
+5. 会话令牌联调：无 Bearer 调 `/mcp` → 401；`POST /mcp/client-sessions` 后再调应成功；`DELETE` 后同一 token 再 401。
 
 ---
 
@@ -234,10 +269,10 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 
 | 包 / 文件 | 职责 |
 |-----------|------|
-| `packages/api/pgy-login` | 登录 Remote、员工根、迁移、logout |
-| `packages/client/ui-pgy-login` | 登录层、退出按钮 |
+| `packages/api/pgy-login` | Base URL、会话令牌、动态 MCP、登录 Remote、员工根、logout |
+| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「后端 / 若依」、退出按钮 |
 | `packages/api/session-controller` | 未登录门闩 |
 | `packages/session/session-persistence*` | `bindRoot` / `closeOpenWriters` |
-| `packages/bundle/web-app/cordis.patch.yml` | MCP + 登录插件装配、persona |
-| `desktop-1tmt/` | Electron 桌面壳（启动页、后台 dsh web、窗口、退出清理） |
+| `packages/bundle/web-app/cordis.patch.yml` | 登录插件装配、persona（MCP 由 pgy-login 挂载） |
+| `desktop-1tmt/` | Electron 桌面壳（启动页、后台 dsh web、优雅退出） |
 | `scripts/pack-desktop-1tmt.ts` | payload 部署 + NSIS 安装包 |

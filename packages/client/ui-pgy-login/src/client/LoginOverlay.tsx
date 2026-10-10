@@ -4,13 +4,21 @@ import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type {
-  PgyLoginStatus, PgyOrganization, PgyOrganizationList, PgyWmsLoginRequest, PgyWmsLoginValue,
+  PgyBackendConfig,
+  PgyBackendConfigRequest,
+  PgyLoginStatus,
+  PgyOrganization,
+  PgyOrganizationList,
+  PgyWmsLoginRequest,
+  PgyWmsLoginValue,
 } from '@deepseek-ai/dsh-api-pgy-login/client'
 import css from './LoginOverlay.module.css'
 
 /** Callbacks the plugin injects from `ctx.remote.pgyLogin` and sessions. */
 export interface LoginOverlayInjected {
   status(): Promise<RemoteResult<PgyLoginStatus>>
+  getBackendConfig(): Promise<RemoteResult<PgyBackendConfig>>
+  setBackendConfig(request: PgyBackendConfigRequest): Promise<RemoteResult<PgyBackendConfig>>
   listOrganizations(): Promise<RemoteResult<PgyOrganizationList>>
   wmsLogin(request: PgyWmsLoginRequest): Promise<RemoteResult<PgyWmsLoginValue>>
   /** Reload the sidebar Session list after a successful login binds the employee root. */
@@ -23,15 +31,20 @@ export type LoginOverlayProps =
   & InjectFace<LoginOverlayInjected>
   & PropsLocale<'pgyLogin'>
 
+type Phase = 'loading' | 'backend' | 'login'
+
 /**
- * Fullscreen WMS login gate. Organization names and Host error messages render verbatim.
+ * Fullscreen gate: RuoYi Base URL (when missing), then WMS login.
  * @param props - locale seat plus Remote callbacks.
  * @returns a body portal while this process is not logged in, otherwise null.
  */
 export function LoginOverlay(props: LoginOverlayProps) {
-  const { t, status, listOrganizations, wmsLogin, refreshSessions } = props
+  const {
+    t, status, getBackendConfig, setBackendConfig, listOrganizations, wmsLogin, refreshSessions,
+  } = props
   const [loggedIn, setLoggedIn] = useState(false)
-  const [ready, setReady] = useState(false)
+  const [phase, setPhase] = useState<Phase>('loading')
+  const [baseUrlDraft, setBaseUrlDraft] = useState('')
   const [organizations, setOrganizations] = useState<readonly PgyOrganization[]>([])
   const [orgId, setOrgId] = useState('')
   const [staffNumber, setStaffNumber] = useState('')
@@ -53,37 +66,72 @@ export function LoginOverlay(props: LoginOverlayProps) {
       if (cancelled) return
       if (!current.ok) {
         setError(current.error.message)
-        setReady(true)
+        setPhase('backend')
         return
       }
       if (current.value.loggedIn) {
         await refreshSessions()
         if (cancelled) return
         setLoggedIn(true)
-        setReady(true)
+        return
+      }
+      const backend = await getBackendConfig()
+      if (cancelled) return
+      if (!backend.ok) {
+        setError(backend.error.message)
+        setPhase('backend')
+        return
+      }
+      setBaseUrlDraft(backend.value.baseUrl)
+      if (!backend.value.configured) {
+        setPhase('backend')
         return
       }
       const listed = await listOrganizations()
       if (cancelled) return
       if (!listed.ok) {
         setError(listed.error.message)
-        setReady(true)
+        setPhase('backend')
         return
       }
       setOrganizations(listed.value.organizations)
-      setReady(true)
+      setPhase('login')
     })()
     return () => { cancelled = true }
-  }, [status, listOrganizations, refreshSessions])
+  }, [status, getBackendConfig, listOrganizations, refreshSessions])
 
   if (loggedIn) return null
-  if (!ready) {
+  if (phase === 'loading') {
     return createPortal((
       <div className={css.gate} role="status">{t('loading')}</div>
     ), document.body)
   }
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const onBackendSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault()
+    const next = baseUrlDraft.trim()
+    if (next === '') return
+    setBusy(true)
+    setError(null)
+    void setBackendConfig({ baseUrl: next }).then(async (saved) => {
+      if (!saved.ok) {
+        setBusy(false)
+        setError(saved.error.message)
+        return
+      }
+      setBaseUrlDraft(saved.value.baseUrl)
+      const listed = await listOrganizations()
+      setBusy(false)
+      if (!listed.ok) {
+        setError(listed.error.message)
+        return
+      }
+      setOrganizations(listed.value.organizations)
+      setPhase('login')
+    })
+  }
+
+  const onLoginSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
     const id = Number(orgId)
     if (!Number.isFinite(id) || staffNumber.trim() === '' || wmsPassword === '') return
@@ -101,9 +149,34 @@ export function LoginOverlay(props: LoginOverlayProps) {
     })
   }
 
+  if (phase === 'backend') {
+    return createPortal((
+      <div className={css.gate} role="dialog" aria-labelledby="pgy-backend-title">
+        <form className={css.card} onSubmit={onBackendSubmit}>
+          <h1 id="pgy-backend-title" className={css.title}>{t('backendTitle')}</h1>
+          <p className={css.subtitle}>{t('backendSubtitle')}</p>
+          <label className={css.field}>
+            {t('backendUrl')}
+            <Input
+              value={baseUrlDraft}
+              disabled={busy}
+              autoComplete="url"
+              placeholder={t('backendUrlPlaceholder')}
+              onChange={(event) => { setBaseUrlDraft(event.target.value) }}
+            />
+          </label>
+          {error === null ? null : <p className={css.error}>{error}</p>}
+          <Button type="submit" variant="primary" className={css.submit} disabled={busy}>
+            {t('backendSubmit')}
+          </Button>
+        </form>
+      </div>
+    ), document.body)
+  }
+
   return createPortal((
     <div className={css.gate} role="dialog" aria-labelledby="pgy-login-title">
-      <form className={css.card} onSubmit={onSubmit}>
+      <form className={css.card} onSubmit={onLoginSubmit}>
         <h1 id="pgy-login-title" className={css.title}>{t('title')}</h1>
         <p className={css.subtitle}>{t('subtitle')}</p>
         <label className={css.field}>
@@ -145,6 +218,17 @@ export function LoginOverlay(props: LoginOverlayProps) {
         <Button type="submit" variant="primary" className={css.submit} disabled={busy}>
           {t('submit')}
         </Button>
+        <button
+          type="button"
+          className={css.linkButton}
+          disabled={busy}
+          onClick={() => {
+            setError(null)
+            setPhase('backend')
+          }}
+        >
+          {t('editBackend')}
+        </button>
       </form>
     </div>
   ), document.body)

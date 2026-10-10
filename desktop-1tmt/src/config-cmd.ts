@@ -11,20 +11,22 @@ export const CONFIG_FILE_NAME = '配置.cmd'
 
 /**
  * Default configuration text, CRLF so Notepad shows the comments on separate lines.
+ * 业务员主路径：在窗口内填写若依根地址；本文件仅作 IT 预置 / 开发兜底。
  * @returns the template body.
  */
 export function configTemplate(): string {
   return [
     '@echo off',
-    'REM ========== 必改：对接若依 MCP ==========',
-    'REM DSH_1TMT_MCP_URL = 跑 RuoYi-Vue 那台机器的地址 + /mcp',
-    'REM   - Harness 与若依在同一台电脑：可用下面默认的 127.0.0.1',
-    'REM   - Harness 装到业务员别的电脑：必须改成若依服务器局域网 IP 或域名',
-    'REM     示例：set "DSH_1TMT_MCP_URL=http://192.168.0.108:8081/mcp"',
-    'REM DSH_1TMT_MCP_TOKEN 必须与若依 application.yml 里 mcp.auth-token 完全一致',
+    'REM ========== 可选：IT 预置若依地址（业务员也可在窗口内配置） ==========',
+    'REM 页面「后端配置 / 设置 → 后端」优先；未在页面保存时才读下面变量。',
+    'REM DSH_1TMT_MCP_URL 可写根地址或带 /mcp 的地址，例如：',
+    'REM   set "DSH_1TMT_MCP_URL=http://192.168.0.108:8081"',
+    'REM   set "DSH_1TMT_MCP_URL=http://192.168.0.108:8081/mcp"',
+    'REM 业务员路径由服务端签发短期会话令牌，一般不必再配 DSH_1TMT_MCP_TOKEN。',
+    'REM DSH_1TMT_MCP_TOKEN 仅运维/旧工具兼容静态 mcp.auth-token 时使用。',
     'REM 改完保存后，关闭并重新打开 Harness 生效。升级安装不会覆盖本文件。',
-    'set "DSH_1TMT_MCP_URL=http://127.0.0.1:8081/mcp"',
-    'set "DSH_1TMT_MCP_TOKEN=local-mcp-change-me"',
+    'set "DSH_1TMT_MCP_URL=http://127.0.0.1:8081"',
+    'REM set "DSH_1TMT_MCP_TOKEN=local-mcp-change-me"',
     'REM ========== 可选：大模型 Key ==========',
     'REM 也可在页面「设置 → 模型」里填写，不必写在这里。',
     'REM set "DEEPSEEK_API_KEY="',

@@ -17,6 +17,8 @@ import { CONFIG_FILE_NAME, configTemplate, parseConfigCmd } from './config-cmd.t
 import { parseReadyUrl, splitLines } from './host-output.ts'
 
 const READY_TIMEOUT_MS = 180_000
+/** Wait for Host SIGTERM cleanup (DELETE client-session) before force-killing. */
+const GRACEFUL_STOP_MS = 2_500
 const LOG_TAIL_LINES = 20
 
 const userRoot = join(process.env.LOCALAPPDATA ?? app.getPath('appData'), 'Harness')
@@ -176,20 +178,44 @@ function startHost(config: Record<string, string>): void {
     clearTimeout(timer)
     log.end()
     host = undefined
+    if (quitting) return
     fail(`Harness 后台服务已退出（${String(code ?? signal)}）。`)
   })
 }
 
-/** Terminate `dsh web` and every tool process it spawned. */
+/** Block the main process briefly so SIGTERM handlers can finish DELETE. */
+function sleepSync(ms: number): void {
+  const buffer = new SharedArrayBuffer(4)
+  Atomics.wait(new Int32Array(buffer), 0, 0, ms)
+}
+
+/**
+ * Ask Host to exit so it can DELETE `/mcp/client-sessions`, then force-kill
+ * the process tree if it outlives the grace window.
+ */
 function stopHost(): void {
   const child = host
   host = undefined
   if (child?.pid === undefined || child.exitCode !== null) return
+  try {
+    child.kill('SIGTERM')
+  } catch {
+    // Fall through to the hard kill path.
+  }
+  const deadline = Date.now() + GRACEFUL_STOP_MS
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) return
+    sleepSync(100)
+  }
   if (process.platform === 'win32') {
     spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true })
     return
   }
-  child.kill()
+  try {
+    child.kill('SIGKILL')
+  } catch {
+    // Process already gone.
+  }
 }
 
 if (!app.requestSingleInstanceLock()) {

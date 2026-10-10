@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdtemp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -23,7 +23,7 @@ async function mockPersistence() {
   }
 }
 
-function harness(
+async function harness(
   execute: ReturnType<typeof vi.fn>,
   sessionPersistence: {
     getBaseRoot(): string
@@ -34,7 +34,11 @@ function harness(
     closeOpenWriters: vi.fn(async () => {}),
     bindRoot: vi.fn(async () => {}),
   },
-) {
+): Promise<PgyLoginController> {
+  const home = await mkdtemp(join(tmpdir(), 'pgy-login-home-'))
+  vi.stubEnv('DSH_HOME', home)
+  vi.stubEnv('DSH_1TMT_MCP_URL', '')
+
   const ctx = new Context()
   ctx.provide('typert', {
     lookups: { configure: () => () => {} },
@@ -42,13 +46,42 @@ function harness(
   } as never)
   ctx.provide('tools', { execute } as never)
   ctx.provide('sessionPersistence', sessionPersistence as never)
-  return new PgyLoginController(ctx, {
+  ctx.logger = { warn: vi.fn(), info: vi.fn(), debug: vi.fn(), error: vi.fn() } as never
+
+  const fiber = Object.assign(Promise.resolve(), {
+    dispose: vi.fn(async () => {}),
+  })
+  vi.spyOn(ctx, 'plugin').mockImplementation((() => fiber) as never)
+
+  vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
+    if ((init?.method ?? 'GET').toUpperCase() === 'POST') {
+      return {
+        ok: true,
+        json: async () => ({ token: 'session-token', clientId: 'client-1', expiresInSeconds: 43200 }),
+      }
+    }
+    return { ok: true, status: 204 }
+  }))
+
+  const controller = new PgyLoginController(ctx, {
     listOrganizationsTool: LIST_TOOL,
     wmsLoginTool: LOGIN_TOOL,
   })
+  await controller.setBackendConfig({ baseUrl: 'http://127.0.0.1:8081' }, AbortSignal.timeout(2000))
+  return controller
 }
 
 describe('PgyLoginController', () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+  })
+
   it('lists organizations from an MCP object value', async () => {
     const execute = vi.fn(async () => ({
       isError: false,
@@ -62,9 +95,14 @@ describe('PgyLoginController', () => {
       },
       content: [],
     }))
-    const controller = harness(execute)
+    const controller = await harness(execute)
     expect(controller.isLoggedIn()).toBe(false)
     expect(controller.status()).toEqual({ loggedIn: false })
+    expect(await controller.getBackendConfig()).toMatchObject({
+      baseUrl: 'http://127.0.0.1:8081',
+      configured: true,
+      mcpReady: true,
+    })
 
     const listed = await controller.listOrganizations(AbortSignal.timeout(1000))
     expect(listed.organizations).toEqual([{ id: 12, name: 'Org A', number: 'A' }])
@@ -92,7 +130,7 @@ describe('PgyLoginController', () => {
       },
       content: [],
     }))
-    const listed = await harness(execute).listOrganizations(AbortSignal.timeout(1000))
+    const listed = await (await harness(execute)).listOrganizations(AbortSignal.timeout(1000))
     expect(listed.organizations).toEqual([
       { id: 117977, name: '合并账簿', number: '000' },
       { id: 1, name: '昆山蒲公英智能科技有限公司', number: '100' },
@@ -113,7 +151,7 @@ describe('PgyLoginController', () => {
       },
       content: [],
     }))
-    const listed = await harness(execute).listOrganizations(AbortSignal.timeout(1000))
+    const listed = await (await harness(execute)).listOrganizations(AbortSignal.timeout(1000))
     expect(listed.organizations).toEqual([{ id: 12, name: 'Org A', number: 'A' }])
   })
 
@@ -126,7 +164,7 @@ describe('PgyLoginController', () => {
       },
       content: [],
     }))
-    const listed = await harness(execute).listOrganizations(AbortSignal.timeout(1000))
+    const listed = await (await harness(execute)).listOrganizations(AbortSignal.timeout(1000))
     expect(listed.organizations).toEqual([{ id: 8, name: 'Org B', number: 'B' }])
   })
 
@@ -136,12 +174,12 @@ describe('PgyLoginController', () => {
       value: JSON.stringify({ organizations: [{ id: 3 }] }),
       content: [],
     }))
-    const listed = await harness(execute).listOrganizations(AbortSignal.timeout(1000))
+    const listed = await (await harness(execute)).listOrganizations(AbortSignal.timeout(1000))
     expect(listed.organizations).toEqual([{ id: 3, name: '', number: '' }])
   })
 
   it('rejects a tool error, a non-object value, invalid JSON, and a missing list', async () => {
-    const toolError = harness(vi.fn(async () => ({
+    const toolError = await harness(vi.fn(async () => ({
       isError: true,
       error: { message: 'unknown tool' },
       content: [],
@@ -149,25 +187,54 @@ describe('PgyLoginController', () => {
     await expect(toolError.listOrganizations(AbortSignal.timeout(1000)))
       .rejects.toMatchObject({ code: 'pgy/login-failed', message: 'unknown tool' })
 
-    const arrayValue = harness(vi.fn(async () => ({ isError: false, value: [], content: [] })))
+    const arrayValue = await harness(vi.fn(async () => ({ isError: false, value: [], content: [] })))
     await expect(arrayValue.listOrganizations(AbortSignal.timeout(1000)))
       .rejects.toBeInstanceOf(RemoteError)
 
-    const badJson = harness(vi.fn(async () => ({ isError: false, value: '{', content: [] })))
+    const badJson = await harness(vi.fn(async () => ({ isError: false, value: '{', content: [] })))
     await expect(badJson.listOrganizations(AbortSignal.timeout(1000)))
       .rejects.toMatchObject({ message: 'MCP tool result is not JSON' })
 
-    const missing = harness(vi.fn(async () => ({ isError: false, value: {}, content: [] })))
+    const missing = await harness(vi.fn(async () => ({ isError: false, value: {}, content: [] })))
     await expect(missing.listOrganizations(AbortSignal.timeout(1000)))
       .rejects.toMatchObject({ message: 'organization list is missing' })
 
-    const emptyBlocks = harness(vi.fn(async () => ({
+    const emptyBlocks = await harness(vi.fn(async () => ({
       isError: false,
       value: { content: [null, [], { type: 'text', text: '' }] },
       content: [],
     })))
     await expect(emptyBlocks.listOrganizations(AbortSignal.timeout(1000)))
       .rejects.toMatchObject({ message: 'organization list is missing' })
+  })
+
+  it('requires a backend Base URL before listing organizations', async () => {
+    const home = await mkdtemp(join(tmpdir(), 'pgy-login-home-'))
+    vi.stubEnv('DSH_HOME', home)
+    vi.stubEnv('DSH_1TMT_MCP_URL', '')
+    const ctx = new Context()
+    ctx.provide('typert', {
+      lookups: { configure: () => () => {} },
+      contexts: { configureHost: () => () => {} },
+    } as never)
+    ctx.provide('tools', { execute: vi.fn() } as never)
+    ctx.provide('sessionPersistence', {
+      getBaseRoot: () => home,
+      closeOpenWriters: vi.fn(async () => {}),
+      bindRoot: vi.fn(async () => {}),
+    } as never)
+    ctx.logger = { warn: vi.fn(), info: vi.fn(), debug: vi.fn(), error: vi.fn() } as never
+    const controller = new PgyLoginController(ctx, {
+      listOrganizationsTool: LIST_TOOL,
+      wmsLoginTool: LOGIN_TOOL,
+    })
+    await expect(controller.listOrganizations(AbortSignal.timeout(1000)))
+      .rejects.toMatchObject({ code: 'pgy/backend-required' })
+    expect(await controller.getBackendConfig()).toEqual({
+      baseUrl: '',
+      configured: false,
+      mcpReady: false,
+    })
   })
 
   it('unwraps employee login from MCP text content', async () => {
@@ -184,7 +251,7 @@ describe('PgyLoginController', () => {
       },
       content: [],
     }))
-    const controller = harness(execute, sessionPersistence)
+    const controller = await harness(execute, sessionPersistence)
     const logged = await controller.wmsLogin({
       orgId: 12,
       staffNumber: 'E01',
@@ -215,7 +282,7 @@ describe('PgyLoginController', () => {
       },
       content: [],
     }))
-    const controller = harness(execute, sessionPersistence)
+    const controller = await harness(execute, sessionPersistence)
     const logged = await controller.wmsLogin({
       orgId: 12,
       staffNumber: 'E01',
@@ -267,7 +334,7 @@ describe('PgyLoginController', () => {
       .toBeLessThan(vi.mocked(sessionPersistence.bindRoot).mock.invocationCallOrder.at(-1)!)
 
     const { sessionPersistence: missingPersistence } = await mockPersistence()
-    const missing = harness(vi.fn(async () => ({
+    const missing = await harness(vi.fn(async () => ({
       isError: false,
       value: { employee: null },
       content: [],
@@ -286,7 +353,7 @@ describe('PgyLoginController', () => {
       value: { employee: { empinfoId: 'E-1' } },
       content: [],
     }))
-    const logged = await harness(execute, sessionPersistence).wmsLogin({
+    const logged = await (await harness(execute, sessionPersistence)).wmsLogin({
       orgId: 1,
       staffNumber: 'x',
       wmsPassword: 'y',
@@ -332,7 +399,7 @@ describe('PgyLoginController', () => {
       },
       content: [],
     }))
-    await harness(execute, sessionPersistence).wmsLogin({
+    await (await harness(execute, sessionPersistence)).wmsLogin({
       orgId: 99,
       staffNumber: 'E02',
       wmsPassword: 'pw',
@@ -342,10 +409,11 @@ describe('PgyLoginController', () => {
 
   it('logout is idempotent when already signed out', async () => {
     const { sessionPersistence } = await mockPersistence()
-    const controller = harness(vi.fn(), sessionPersistence)
+    const controller = await harness(vi.fn(), sessionPersistence)
     await controller.logout()
     expect(controller.isLoggedIn()).toBe(false)
     expect(sessionPersistence.closeOpenWriters).not.toHaveBeenCalled()
+    // setBackendConfig does not touch sessionPersistence.bindRoot for employee scope
     expect(sessionPersistence.bindRoot).not.toHaveBeenCalled()
   })
 })

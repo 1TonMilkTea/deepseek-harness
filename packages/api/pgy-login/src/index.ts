@@ -1,18 +1,34 @@
-/** Host Remote owner: list WMS organizations and complete employee login through MCP tools. */
+/** Host Remote owner: backend Base URL, MCP session token, and WMS login. */
 
 import { randomUUID } from 'node:crypto'
 import { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import * as McpClient from '@deepseek-ai/dsh-mcp-client'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type {} from '@deepseek-ai/dsh-tools'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import {
+  mcpEndpoint,
+  normalizeBaseUrl,
+  readStoredBackendConfig,
+  resolveBackendBaseUrl,
+  writeStoredBackendConfig,
+} from './backend-config.ts'
+import {
   employeeScopeKey, employeeSessionRoot, migrateLegacySessionsOnce,
 } from './employee-scope.ts'
+import { issueClientSession, revokeClientSession } from './session-client.ts'
 import type {
-  PgyEmployee, PgyLoginStatus, PgyOrganization, PgyOrganizationList, PgyWmsLoginRequest, PgyWmsLoginValue,
+  PgyBackendConfig,
+  PgyEmployee,
+  PgyLoginStatus,
+  PgyOrganization,
+  PgyOrganizationList,
+  PgyBackendConfigRequest,
+  PgyWmsLoginRequest,
+  PgyWmsLoginValue,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -20,6 +36,18 @@ export {
   employeeScopeKey, employeeSessionRoot, migrateLegacySessionsOnce,
   PGY_EMPLOYEE_SCOPE_MARKER, PGY_EMPLOYEE_SESSIONS_DIR,
 } from './employee-scope.ts'
+export {
+  BACKEND_CONFIG_FILE,
+  DEFAULT_BACKEND_BASE_URL,
+  backendConfigPath,
+  clientSessionsEndpoint,
+  mcpEndpoint,
+  normalizeBaseUrl,
+  readStoredBackendConfig,
+  resolveBackendBaseUrl,
+  writeStoredBackendConfig,
+} from './backend-config.ts'
+export { issueClientSession, revokeClientSession } from './session-client.ts'
 
 /** MCP tool names this controller executes for the Web login page. */
 export interface Config {
@@ -27,19 +55,36 @@ export interface Config {
   listOrganizationsTool: string
   /** Public tool name for `pgyWmsLogin` (`mcp__<serverName>__pgyWmsLogin`). */
   wmsLoginTool: string
+  /** Value sent as `clientName` when issuing a session token. */
+  clientName?: string
+  /** MCP `serverName` namespace for the dynamically mounted client. */
+  mcpServerName?: string
 }
 
 /** Schemastery configuration for the login Remote. */
 export const Config: z<Config> = z.object({
   listOrganizationsTool: z.string(),
   wmsLoginTool: z.string(),
+  clientName: z.string().default('harness-desktop'),
+  mcpServerName: z.string().default('1tmt'),
 })
+
+interface ResolvedConfig {
+  readonly listOrganizationsTool: string
+  readonly wmsLoginTool: string
+  readonly clientName: string
+  readonly mcpServerName: string
+}
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
     /** Host WMS login Remote namespace owner and Session create/prompt gate. */
     pgyLogin: PgyLoginController
   }
+}
+
+type McpFiber = {
+  dispose(): Promise<void>
 }
 
 /** Host service backing the generated `ctx.remote.pgyLogin` namespace. */
@@ -50,13 +95,42 @@ export class PgyLoginController extends TypertRemoteService {
 
   private loggedIn = false
   private employee: PgyEmployee | undefined
+  private baseUrl: string | undefined
+  private clientId: string | undefined
+  private sessionToken: string | undefined
+  private mcpFiber: McpFiber | undefined
+  private readonly boot: Promise<void>
+  private tearingDown = false
+  private readonly config: ResolvedConfig
+  private readonly onProcessSignal = (): void => {
+    void this.teardownSession('signal')
+  }
 
   /**
    * @param ctx - Host context carrying tools, persistence, and Typert Gateway.
    * @param config - MCP public tool names for organization listing and WMS login.
    */
-  constructor(ctx: Context, private readonly config: Config) {
+  constructor(ctx: Context, config: Config) {
     super(ctx, 'pgyLogin', { namespace: 'pgyLogin' })
+    this.config = {
+      listOrganizationsTool: config.listOrganizationsTool,
+      wmsLoginTool: config.wmsLoginTool,
+      clientName: config.clientName ?? 'harness-desktop',
+      mcpServerName: config.mcpServerName ?? '1tmt',
+    }
+    this.boot = this.bootstrap().catch((error) => {
+      this.ctx.logger.warn(`pgy-login backend bootstrap: ${String(error)}`)
+    })
+    // Vitest creates many controller instances in one process; skip process
+    // signals there and rely on fiber dispose / explicit revoke instead.
+    if (process.env.VITEST === undefined) {
+      process.on('SIGINT', this.onProcessSignal)
+      process.on('SIGTERM', this.onProcessSignal)
+    }
+    ctx.effect(() => () => {
+      this.detachProcessSignals()
+      void this.teardownSession('dispose')
+    }, 'pgy-login.backend-lifecycle')
   }
 
   /**
@@ -79,12 +153,59 @@ export class PgyLoginController extends TypertRemoteService {
   }
 
   /**
+   * Report the salesman-facing RuoYi Base URL and MCP readiness.
+   * @returns config snapshot for the login overlay and settings page.
+   */
+  @Remote('getBackendConfig')
+  async getBackendConfig(): Promise<PgyBackendConfig> {
+    await this.boot
+    const configured = await resolveBackendBaseUrl({ requireConfigured: true })
+    const baseUrl = this.baseUrl ?? configured ?? ''
+    return {
+      baseUrl,
+      configured: configured !== undefined || this.baseUrl !== undefined,
+      mcpReady: this.sessionToken !== undefined && this.mcpFiber !== undefined,
+    }
+  }
+
+  /**
+   * Persist a Base URL, issue a session token, and remount the MCP client.
+   * @param request - RuoYi root address (token is never collected from the UI).
+   * @param signal - caller lifetime.
+   * @returns updated backend snapshot after MCP remount.
+   */
+  @Remote('setBackendConfig')
+  async setBackendConfig(
+    request: PgyBackendConfigRequest,
+    signal: AbortSignal,
+  ): Promise<PgyBackendConfig> {
+    await this.boot
+    const baseUrl = normalizeBaseUrl(request.baseUrl)
+    if (baseUrl === '') {
+      throw new RemoteError('pgy/backend-required', 'RuoYi Base URL is required', {})
+    }
+    try {
+      new URL(baseUrl)
+    } catch {
+      throw new RemoteError('pgy/backend-connect-failed', 'Invalid RuoYi Base URL', { reason: 'invalid-url' })
+    }
+    await writeStoredBackendConfig({
+      baseUrl,
+      ...(this.clientId === undefined ? {} : { clientId: this.clientId }),
+    })
+    await this.connectBackend(baseUrl, signal)
+    return this.getBackendConfig()
+  }
+
+  /**
    * Load organizations for the Web login page through the configured MCP tool.
    * @param signal - caller lifetime; abort stops the MCP call.
    * @returns organization rows without Kingdee cookies.
    */
   @Remote('listOrganizations')
   async listOrganizations(signal: AbortSignal): Promise<PgyOrganizationList> {
+    await this.boot
+    await this.ensureMcpReady(signal)
     const payload = await this.callTool(this.config.listOrganizationsTool, {}, signal)
     const organizations = readOrganizations(payload)
     return { organizations }
@@ -99,6 +220,7 @@ export class PgyLoginController extends TypertRemoteService {
    */
   @Remote('wmsLogin')
   async wmsLogin(request: PgyWmsLoginRequest, signal: AbortSignal): Promise<PgyWmsLoginValue> {
+    await this.boot
     if (this.loggedIn && this.employee !== undefined) {
       const requestedKey = `${String(request.orgId)}__${request.staffNumber}`
       const currentKey = employeeScopeKey(this.employee)
@@ -112,6 +234,7 @@ export class PgyLoginController extends TypertRemoteService {
       return { employee: this.employee }
     }
 
+    await this.ensureMcpReady(signal)
     const payload = await this.callTool(this.config.wmsLoginTool, {
       orgId: request.orgId,
       staffNumber: request.staffNumber,
@@ -143,6 +266,104 @@ export class PgyLoginController extends TypertRemoteService {
     await this.ctx.sessionPersistence.bindRoot(this.ctx.sessionPersistence.getBaseRoot())
     this.employee = undefined
     this.loggedIn = false
+  }
+
+  private async bootstrap(): Promise<void> {
+    const stored = await readStoredBackendConfig()
+    this.clientId = stored?.clientId
+    const baseUrl = await resolveBackendBaseUrl({ requireConfigured: true })
+    if (baseUrl === undefined) return
+    await this.connectBackend(baseUrl)
+  }
+
+  private async ensureMcpReady(signal: AbortSignal): Promise<void> {
+    if (this.sessionToken !== undefined && this.mcpFiber !== undefined) return
+    const baseUrl = this.baseUrl ?? await resolveBackendBaseUrl({ requireConfigured: true })
+    if (baseUrl === undefined) {
+      throw new RemoteError('pgy/backend-required', 'Configure the RuoYi Base URL first', {})
+    }
+    await this.connectBackend(baseUrl, signal)
+  }
+
+  private async connectBackend(baseUrl: string, signal?: AbortSignal): Promise<void> {
+    const normalized = normalizeBaseUrl(baseUrl)
+    await this.revokeAndUnmount()
+    this.tearingDown = false
+    let issued
+    try {
+      issued = await issueClientSession({
+        baseUrl: normalized,
+        clientName: this.config.clientName,
+        ...(this.clientId === undefined ? {} : { clientId: this.clientId }),
+        ...(signal === undefined ? {} : { signal }),
+      })
+    } catch (error) {
+      throw new RemoteError(
+        'pgy/backend-connect-failed',
+        'Failed to obtain an MCP session token',
+        { reason: error instanceof Error ? error.message : String(error) },
+      )
+    }
+    this.baseUrl = normalized
+    this.clientId = issued.clientId
+    this.sessionToken = issued.token
+    await writeStoredBackendConfig({ baseUrl: normalized, clientId: issued.clientId })
+    try {
+      await this.mountMcp(normalized, issued.token)
+    } catch (error) {
+      await this.revokeAndUnmount()
+      throw new RemoteError(
+        'pgy/backend-connect-failed',
+        'Failed to connect MCP after issuing a session token',
+        { reason: error instanceof Error ? error.message : String(error) },
+      )
+    }
+  }
+
+  private async mountMcp(baseUrl: string, token: string): Promise<void> {
+    await this.unmountMcp()
+    const fiber = this.ctx.plugin(McpClient, {
+      transport: 'streamable-http',
+      serverName: this.config.mcpServerName,
+      url: mcpEndpoint(baseUrl),
+      headers: { Authorization: `Bearer ${token}` },
+      failOnStartupError: false,
+    }) as McpFiber & PromiseLike<unknown>
+    await fiber
+    this.mcpFiber = fiber
+  }
+
+  private async unmountMcp(): Promise<void> {
+    const fiber = this.mcpFiber
+    this.mcpFiber = undefined
+    if (fiber === undefined) return
+    try {
+      await fiber.dispose()
+    } catch (error) {
+      this.ctx.logger.warn(`pgy-login: disposing mcp-client failed: ${String(error)}`)
+    }
+  }
+
+  private detachProcessSignals(): void {
+    process.removeListener('SIGINT', this.onProcessSignal)
+    process.removeListener('SIGTERM', this.onProcessSignal)
+  }
+
+  private async revokeAndUnmount(): Promise<void> {
+    const token = this.sessionToken
+    const baseUrl = this.baseUrl
+    this.sessionToken = undefined
+    await this.unmountMcp()
+    if (token !== undefined && baseUrl !== undefined) {
+      await revokeClientSession({ baseUrl, token })
+    }
+  }
+
+  private async teardownSession(_reason: string): Promise<void> {
+    if (this.tearingDown) return
+    this.tearingDown = true
+    this.detachProcessSignals()
+    await this.revokeAndUnmount()
   }
 
   private async disposeLiveAgents(): Promise<void> {

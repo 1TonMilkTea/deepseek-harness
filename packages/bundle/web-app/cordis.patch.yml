@@ -111,28 +111,19 @@
     - id: plugin-inventory
       name: '@deepseek-ai/dsh-host-plugin-inventory'
 
-    # 1TMT Streamable HTTP MCP. workbuddyPing = WorkBuddy channel; kduPing /
-    # kdePing = Kingdee startup login; pgyPing / pgyEcho = 1tmt-kde-pgy.
-    # DSH_1TMT_MCP_URL 默认本机若依；Harness 装到其他电脑时改成若依服务器
-    # http://<若依IP>:8081/mcp（桌面安装包见 %LOCALAPPDATA%\Harness\配置.cmd）。令牌须与 mcp.auth-token 一致。
-    - id: mcp-1tmt
-      name: '@deepseek-ai/dsh-mcp-client'
-      config:
-        serverName: 1tmt
-        transport: streamable-http
-        url: !!js "process.env.DSH_1TMT_MCP_URL?.trim() || 'http://127.0.0.1:8081/mcp'"
-        headers: !!js "({ Authorization: 'Bearer ' + (process.env.DSH_1TMT_MCP_TOKEN?.trim() || 'local-mcp-change-me') })"
-        failOnStartupError: false
-
     # Session commands, cold reads, and live control over Typert Remote.
     - id: session-controller
       name: '@deepseek-ai/dsh-api-session-controller'
 
+    # 1TMT：页面/配置.cmd 只配若依 Base URL；本插件申请会话令牌并动态挂载 mcp-client
+    # （serverName=1tmt）。静态 mcp.auth-token 仍留给运维旧客户端，业务员路径不用。
     - id: pgy-login
       name: '@deepseek-ai/dsh-api-pgy-login'
       config:
         listOrganizationsTool: mcp__1tmt__pgyListOrganizations
         wmsLoginTool: mcp__1tmt__pgyWmsLogin
+        clientName: harness-desktop
+        mcpServerName: 1tmt
 
     # Workspace file service: bounded read, directory listing, and the
     # agent-write change feed inside the session workspace root.

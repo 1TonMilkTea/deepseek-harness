@@ -61,3 +61,22 @@
 .submit {
   width: 100%;
 }
+
+.linkButton {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-secondary);
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: center;
+}
+
+.linkButton:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
