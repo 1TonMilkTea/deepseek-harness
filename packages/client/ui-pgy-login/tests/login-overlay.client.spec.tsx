@@ -31,9 +31,19 @@ function mount(root: HTMLDivElement | null, extra: Partial<Parameters<typeof Log
     value: { employee: { empinfoId: '1', staffNumber: 'E01', name: 'Ada', orgId: '12', orgName: 'Org A', userId: '7' } },
   }))
   const refreshSessions = extra.refreshSessions ?? vi.fn(async () => {})
+  const getBackendConfig = extra.getBackendConfig ?? vi.fn(async () => ({
+    ok: true as const,
+    value: { baseUrl: 'http://127.0.0.1:8080', configured: true },
+  }))
+  const setBackendConfig = extra.setBackendConfig ?? vi.fn(async () => ({
+    ok: true as const,
+    value: { baseUrl: 'http://127.0.0.1:8080', configured: true },
+  }))
   const props = {
     t,
     status,
+    getBackendConfig,
+    setBackendConfig,
     listOrganizations,
     wmsLogin,
     refreshSessions,
@@ -41,6 +51,8 @@ function mount(root: HTMLDivElement | null, extra: Partial<Parameters<typeof Log
   } as LoginOverlayProps
   return {
     status,
+    getBackendConfig,
+    setBackendConfig,
     listOrganizations,
     wmsLogin,
     refreshSessions,
