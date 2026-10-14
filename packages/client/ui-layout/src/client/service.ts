@@ -15,6 +15,13 @@ import type { createLayoutStore } from './stores.ts'
 /** Identity shared by a sidebar panel entry and its main-slot occupant. */
 export type MainPanelId = Branded<'MainPanelId'>
 
+/**
+ * Main panel that keeps the Conversation mounted beside the panel (≈50/50).
+ * Owned by `@deepseek-ai/dsh-client-ui-custom-panel`; AppFrame dual-renders
+ * this key with `conversation` when it is the active panel.
+ */
+export const SPLIT_WITH_CONVERSATION_PANEL_ID = 'custom' as MainPanelId
+
 /** Root-scoped navigation state exposed to panel-aware components. */
 export interface PanelInfo {
   /** Selected global panel; null displays the current Conversation. */

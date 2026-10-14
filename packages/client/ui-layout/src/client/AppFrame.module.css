@@ -69,6 +69,37 @@
   overflow: hidden;
 }
 
+/* Custom panel + Conversation side by side (see SPLIT_WITH_CONVERSATION_PANEL_ID). */
+.splitMain {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.splitPane {
+  flex: 1 1 50%;
+  width: 50%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.splitPane > :global(*) {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.splitPane + .splitPane {
+  border-left: 0.5px solid var(--dsw-alias-border-l3);
+}
+
 /* macOS desktop: the frame goes transparent so window vibrancy reaches the
    sidebar column, which keeps only a translucent tint; the centre paints the
    base background itself to stay opaque. The sidebar/centre separator moves

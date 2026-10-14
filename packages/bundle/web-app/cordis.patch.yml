@@ -413,6 +413,10 @@
     - id: ui-schedule
       name: '@deepseek-ai/dsh-client-ui-schedule'
 
+    # Custom sidebar panel: placeholder beside Conversation (AppFrame split).
+    - id: ui-custom-panel
+      name: '@deepseek-ai/dsh-client-ui-custom-panel'
+
     # Goal surface: GoalBar in the input dock over the goal session projection.
     - id: ui-goal
       name: '@deepseek-ai/dsh-client-ui-goal'

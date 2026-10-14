@@ -1,0 +1,44 @@
+.tmt-login-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dsw-alias-bg-layer-1, #f5f6f8);
+}
+
+.tmt-login-card {
+  width: min(400px, calc(100vw - 48px));
+  padding: 28px 24px 24px;
+}
+
+.tmt-login-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.tmt-login-subtitle {
+  margin: 0 0 20px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--el-text-color-secondary, #909399);
+}
+
+.tmt-login-field {
+  margin-bottom: 16px;
+}
+
+.tmt-login-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tmt-login-loading {
+  font-size: 14px;
+  color: var(--el-text-color-regular, #606266);
+}

@@ -26,7 +26,7 @@ import { ThemePresenter } from './theme-presenter.ts'
 // ILayout: the ctx.layout face consumers and test fakes type against.
 // OwnerShare contracts below are the render-side halves registrants compose
 // against; the frame components and the store factory are package-internal.
-export { LayoutController } from './service.ts'
+export { LayoutController, SPLIT_WITH_CONVERSATION_PANEL_ID } from './service.ts'
 export type { ILayout, MainPanelId, PanelInfo } from './service.ts'
 
 /** Selector hook over root-scoped panel selection. */

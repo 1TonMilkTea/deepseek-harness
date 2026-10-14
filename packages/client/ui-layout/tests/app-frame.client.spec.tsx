@@ -7,6 +7,7 @@ import { act, cleanup, render } from '@testing-library/react'
 import { AppFrame } from '../src/client/AppFrame.tsx'
 import type { AppFrameProps } from '../src/client/AppFrame.tsx'
 import type { MainPanelId, RightbarOwnerProps, SidebarOwnerProps } from '../src/client/index.ts'
+import { SPLIT_WITH_CONVERSATION_PANEL_ID } from '../src/client/index.ts'
 import { createLayoutStore } from '../src/client/stores.ts'
 import type { WorkspaceSnapshot } from '@deepseek-ai/dsh-api-workspace-controller/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
@@ -286,6 +287,23 @@ describe('AppFrame', () => {
       expect(selectedSession).toBe(sessionId)
       expect(document.title).toBe(panelId === null ? 'Session title — DSH Local Build' : 'DSH Local Build')
     }
+  })
+
+  it('dual-mounts custom and conversation when the split panel is selected', () => {
+    const { instance, frame, slotCalls, getAllByTestId } = mountFrame()
+    slotCalls.length = 0
+    act(() => { instance.actions.selectPanel(SPLIT_WITH_CONVERSATION_PANEL_ID) })
+    expect(slotCalls).toEqual([
+      { key: 'main', props: {}, options: { entryKey: SPLIT_WITH_CONVERSATION_PANEL_ID } },
+      { key: 'main', props: {}, options: { entryKey: 'conversation' } },
+    ])
+    expect(frame.querySelector('[data-main-split]')).not.toBeNull()
+    const mains = getAllByTestId('main-content')
+    expect(mains.map(node => node.getAttribute('data-entry-key'))).toEqual([
+      SPLIT_WITH_CONVERSATION_PANEL_ID,
+      'conversation',
+    ])
+    expect(instance.getSnapshot().panelInfo).toEqual({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
   })
 })
 

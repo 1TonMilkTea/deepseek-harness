@@ -4,19 +4,103 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 import { RemoteError, type RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type { PgyLoginStatus } from '@deepseek-ai/dsh-api-pgy-login/client'
+import type { LoginBridge } from '@deepseek-ai/dsh-1tmt-vue'
 import type {} from '../src/client/index.ts'
 import { LoginOverlay, type LoginOverlayProps } from '../src/client/LoginOverlay.tsx'
 import { zh, type PgyLoginKey } from '../src/client/locales.ts'
 
+const mountLogin = vi.fn<(el: HTMLElement, bridge: LoginBridge) => void>()
+const unmountLogin = vi.fn<(el: HTMLElement) => void>()
+
+vi.mock('@deepseek-ai/dsh-1tmt-vue', () => ({
+  mountLogin: (el: HTMLElement, bridge: LoginBridge) => { mountLogin(el, bridge) },
+  unmountLogin: (el: HTMLElement) => { unmountLogin(el) },
+}))
+
 afterEach(() => {
   cleanup()
   document.getElementById('root')?.remove()
+  mountLogin.mockReset()
+  unmountLogin.mockReset()
 })
 
 const t: TranslateNS<'pgyLogin'> = key => key in zh ? zh[key as PgyLoginKey] : key
 
 function failed(message: string) {
   return { ok: false as const, error: new RemoteError('pgy/login-failed', message, { tool: 'pgy-login' }) }
+}
+
+/**
+ * Drive the Vue island contract from the captured bridge (host tests stay Cordis-free).
+ * @param bridge - LoginBridge from mountLogin
+ */
+async function runLoginIsland(bridge: LoginBridge): Promise<void> {
+  const host = document.querySelector('[data-1tmt-login-host]')
+  if (!(host instanceof HTMLElement)) throw new Error('login host missing')
+
+  const current = await bridge.status()
+  if (!current.ok) {
+    host.setAttribute('role', 'dialog')
+    host.textContent = current.error.message
+    return
+  }
+  if (current.value.loggedIn) {
+    await bridge.refreshSessions()
+    bridge.onLoggedIn()
+    return
+  }
+  const backend = await bridge.getBackendConfig()
+  if (!backend.ok) {
+    host.setAttribute('role', 'dialog')
+    host.textContent = backend.error.message
+    return
+  }
+  if (!backend.value.configured) {
+    host.setAttribute('role', 'dialog')
+    host.textContent = bridge.labels.backendTitle
+    return
+  }
+  const listed = await bridge.listOrganizations()
+  if (!listed.ok) {
+    host.setAttribute('role', 'dialog')
+    host.textContent = listed.error.message
+    return
+  }
+  host.setAttribute('role', 'dialog')
+  host.replaceChildren()
+  const form = document.createElement('form')
+  const org = document.createElement('select')
+  org.setAttribute('role', 'combobox')
+  for (const organization of listed.value.organizations) {
+    const option = document.createElement('option')
+    option.value = String(organization.id)
+    option.textContent = organization.name
+    org.appendChild(option)
+  }
+  const staff = document.createElement('input')
+  staff.placeholder = bridge.labels.staffNumberPlaceholder
+  const password = document.createElement('input')
+  password.placeholder = bridge.labels.passwordPlaceholder
+  const error = document.createElement('p')
+  form.append(org, staff, password, error)
+  form.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const id = Number(org.value)
+    if (!Number.isFinite(id) || staff.value.trim() === '' || password.value === '') return
+    void bridge.wmsLogin({
+      orgId: id,
+      staffNumber: staff.value.trim(),
+      wmsPassword: password.value,
+    }).then(async (result) => {
+      if (!result.ok) {
+        error.textContent = result.error.message
+        return
+      }
+      await bridge.refreshSessions()
+      bridge.onLoggedIn()
+    })
+  })
+  host.appendChild(form)
 }
 
 function mount(root: HTMLDivElement | null, extra: Partial<Parameters<typeof LoginOverlay>[0]> = {}) {
@@ -49,6 +133,11 @@ function mount(root: HTMLDivElement | null, extra: Partial<Parameters<typeof Log
     refreshSessions,
     ...extra,
   } as LoginOverlayProps
+  mountLogin.mockImplementation((el, bridge) => {
+    el.setAttribute('role', 'status')
+    el.textContent = bridge.labels.loading
+    void runLoginIsland(bridge)
+  })
   return {
     status,
     getBackendConfig,
@@ -61,10 +150,11 @@ function mount(root: HTMLDivElement | null, extra: Partial<Parameters<typeof Log
 }
 
 describe('LoginOverlay', () => {
-  it('shows loading copy until Host status returns', async () => {
+  it('mounts the Vue login island with a bridge', async () => {
     mount(null, {
       status: vi.fn(() => new Promise<RemoteResult<PgyLoginStatus>>(() => {})),
     })
+    await waitFor(() => { expect(mountLogin).toHaveBeenCalled() })
     expect((await screen.findByRole('status')).textContent).toBe(zh.loading)
   })
 
@@ -77,6 +167,7 @@ describe('LoginOverlay', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull()
       expect(refreshSessions).toHaveBeenCalled()
+      expect(document.querySelector('[data-1tmt-login-host]')).toBeNull()
     })
   })
 
@@ -126,27 +217,16 @@ describe('LoginOverlay', () => {
     expect(view.wmsLogin).toHaveBeenCalled()
   })
 
-  it('abandons in-flight Host reads when unmounted', async () => {
+  it('unmounts the Vue island when the host unmounts', async () => {
     let resolveStatus: (value: { ok: true; value: { loggedIn: false } }) => void = () => {}
     const status = vi.fn(() => new Promise<{ ok: true; value: { loggedIn: false } }>((resolve) => {
       resolveStatus = resolve
     }))
     const view = mount(null, { status })
+    await waitFor(() => { expect(mountLogin).toHaveBeenCalled() })
     view.unmount()
+    expect(unmountLogin).toHaveBeenCalled()
     resolveStatus({ ok: true, value: { loggedIn: false } })
-    await Promise.resolve()
-    expect(screen.queryByRole('dialog')).toBeNull()
-  })
-
-  it('abandons organization listing after status when unmounted', async () => {
-    let resolveList: (value: { ok: true; value: { organizations: [] } }) => void = () => {}
-    const listOrganizations = vi.fn(() => new Promise<{ ok: true; value: { organizations: [] } }>((resolve) => {
-      resolveList = resolve
-    }))
-    const view = mount(null, { listOrganizations })
-    await waitFor(() => { expect(listOrganizations).toHaveBeenCalled() })
-    view.unmount()
-    resolveList({ ok: true, value: { organizations: [] } })
     await Promise.resolve()
     expect(screen.queryByRole('dialog')).toBeNull()
   })

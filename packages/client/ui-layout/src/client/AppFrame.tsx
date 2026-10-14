@@ -21,6 +21,7 @@ import type {
 } from '@deepseek-ai/dsh-client-ui-slots'
 import { CENTER_MIN, clampWidth, computeColumns, RIGHTBAR_DEFAULT_RATIO, RIGHTBAR_MAX_RATIO, RIGHTBAR_MIN, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_COLLAPSED, SIDEBAR_DEFAULT } from './columns.ts'
 import { DocumentTitle } from './DocumentTitle.tsx'
+import { SPLIT_WITH_CONVERSATION_PANEL_ID } from './service.ts'
 import type { createLayoutStore } from './stores.ts'
 import css from './AppFrame.module.css'
 
@@ -39,6 +40,18 @@ function CenterColumn(props: { children?: ReactNode }) {
 /** Subscribe to the main key without subscribing the column frame to each panel id. */
 function MainPanel({ usePanelInfo, renderSlot }: Pick<PropsRuntime<'root'>, 'usePanelInfo'> & PropsRenderSlots<'main'>) {
   const panelId = usePanelInfo(info => info.activePanelId)
+  if (panelId === SPLIT_WITH_CONVERSATION_PANEL_ID) {
+    return (
+      <div className={css.splitMain} data-main-split>
+        <div className={css.splitPane} data-main-split-pane="custom">
+          {renderSlot('main', {}, { entryKey: SPLIT_WITH_CONVERSATION_PANEL_ID })}
+        </div>
+        <div className={css.splitPane} data-main-split-pane="conversation">
+          {renderSlot('main', {}, { entryKey: 'conversation' })}
+        </div>
+      </div>
+    )
+  }
   return renderSlot('main', {}, { entryKey: panelId ?? 'conversation' })
 }
 
