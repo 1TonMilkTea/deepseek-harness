@@ -292,6 +292,7 @@
     { "path": "./packages/api/job-controller/tsconfig.host.json" },
     { "path": "./packages/api/session-controller/tsconfig.host.json" },
     { "path": "./packages/api/pgy-login/tsconfig.host.json" },
+    { "path": "./packages/api/pgy-pur-receive/tsconfig.host.json" },
     { "path": "./packages/1tmt/workbench/tsconfig.host.json" },
     { "path": "./packages/1tmt/workbench-context" },
     { "path": "./packages/api/workspace-files/tsconfig.host.json" },

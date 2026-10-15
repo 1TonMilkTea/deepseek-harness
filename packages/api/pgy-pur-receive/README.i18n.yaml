@@ -1,0 +1,34 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/api/pgy-pur-receive/README.md
+/:
+  en: e4758b517365bf16
+  zh: 14b2505617edd9b8
+/deepseek-ai-dsh-api-pgy-pur-receive:
+  en: fe6745f306a0bc38
+  zh: ab939beea41d2cf5
+/deepseek-ai-dsh-api-pgy-pur-receive/summary:
+  en: 06116f4deef85c7f
+  zh: 7447b737920ab146
+/deepseek-ai-dsh-api-pgy-pur-receive/table-of-contents:
+  en: 2d9e6ac7cd680553
+  zh: cde5c98c64706e91
+/deepseek-ai-dsh-api-pgy-pur-receive/use-this-package:
+  en: 6b6ea601dd1696a1
+  zh: 439a7fe48733c430
+/deepseek-ai-dsh-api-pgy-pur-receive/remote-mcp-map:
+  en: d570f0f5d69a8f7c
+  zh: 0748eed25c8fc2ef
+/deepseek-ai-dsh-api-pgy-pur-receive/model-experience:
+  en: fb09ca975be57a35
+  zh: 8e0abfd94dfa192f
+/deepseek-ai-dsh-api-pgy-pur-receive/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 3eeb7ebebcd2be23
+/deepseek-ai-dsh-api-pgy-pur-receive/known-limitations-and-deferred-work:
+  en: 2adcbe1cebb076ea
+  zh: 6db43628df23dfcb
+/deepseek-ai-dsh-api-pgy-pur-receive/known-limitations-and-deferred-work/dev-note:
+  en: 33aab115373fd8b2
+  zh: 69fbf81883939e2d

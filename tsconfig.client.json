@@ -83,6 +83,7 @@
     { "path": "./packages/api/gateway/tsconfig.client.json" },
     { "path": "./packages/api/session-controller/tsconfig.client.json" },
     { "path": "./packages/api/pgy-login/tsconfig.client.json" },
+    { "path": "./packages/api/pgy-pur-receive/tsconfig.client.json" },
     { "path": "./packages/1tmt/workbench/tsconfig.client.json" },
     { "path": "./packages/api/workspace-controller/tsconfig.client.json" },
     { "path": "./packages/api/remotes/tsconfig.client.json" },

@@ -146,6 +146,17 @@
         clientName: harness-desktop
         mcpServerName: 1tmt
 
+    # 1TMT：采购入库 Host Remote（仅 tools.execute → 若依 MCP，不直连金蝶）
+    - id: pgy-pur-receive
+      name: '@deepseek-ai/dsh-api-pgy-pur-receive'
+      config:
+        listBillsTool: mcp__1tmt__pgyListReceiveBills
+        viewBillTool: mcp__1tmt__pgyKdeViewBill
+        entityOutputsTool: mcp__1tmt__pgyGetPurReceiveEntityOutputs
+        getBarcodeTool: mcp__1tmt__pgyGetBarcodeByNumber
+        getStockInfoTool: mcp__1tmt__pgyGetStockInfoByNumber
+        submitReportTool: mcp__1tmt__pgySubmitStkInStockRecordReport
+
     # 1TMT：自定义工作台快照的 Host 存储（Remote tmtWorkbench）与 pre-step 注入；
     # 卸掉后对话不再自动读到自定义工作台数据。
     - id: 1tmt-workbench

@@ -25,6 +25,7 @@ import subagentsRemote from '@deepseek-ai/dsh-subagent/remote'
 import sessionRemote from '@deepseek-ai/dsh-api-session-controller/remote'
 import jobRemote from '@deepseek-ai/dsh-api-job-controller/remote'
 import pgyLoginRemote from '@deepseek-ai/dsh-api-pgy-login/remote'
+import pgyPurReceiveRemote from '@deepseek-ai/dsh-api-pgy-pur-receive/remote'
 import tmtWorkbenchRemote from '@deepseek-ai/dsh-1tmt-workbench/remote'
 import workspaceRemote from '@deepseek-ai/dsh-api-workspace-controller/remote'
 import terminalRemote from '@deepseek-ai/dsh-api-terminal-controller/remote'
@@ -64,6 +65,8 @@ export type {} from '@deepseek-ai/dsh-api-job-controller/remote'
 export type * from '@deepseek-ai/dsh-api-job-controller/types'
 export type {} from '@deepseek-ai/dsh-api-pgy-login/remote'
 export type * from '@deepseek-ai/dsh-api-pgy-login/types'
+export type {} from '@deepseek-ai/dsh-api-pgy-pur-receive/remote'
+export type * from '@deepseek-ai/dsh-api-pgy-pur-receive/types'
 export type {} from '@deepseek-ai/dsh-1tmt-workbench/remote'
 export type * from '@deepseek-ai/dsh-1tmt-workbench/types'
 export type {} from '@deepseek-ai/dsh-api-workspace-controller/remote'
@@ -190,6 +193,7 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
       pluginInventoryRemote, pluginManagerRemote, pluginRegistryProbeRemote, messageFeedbackRemote, sessionFeedbackRemote,
       fileUploadsRemote, sessionReferencesRemote,
       permissionPresetsRemote, subagentsRemote, sessionRemote, jobRemote, pgyLoginRemote,
+      pgyPurReceiveRemote,
       tmtWorkbenchRemote,
       workspaceRemote, workspaceFilesRemote, terminalRemote,
       officeToPdfRemote, userQuestionsRemote,

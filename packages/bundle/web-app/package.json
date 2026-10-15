@@ -57,6 +57,7 @@
     "@deepseek-ai/dsh-agent-tool-presentation": "workspace:*",
     "@deepseek-ai/dsh-api-job-controller": "workspace:*",
     "@deepseek-ai/dsh-api-pgy-login": "workspace:*",
+    "@deepseek-ai/dsh-api-pgy-pur-receive": "workspace:*",
     "@deepseek-ai/dsh-1tmt-workbench": "workspace:*",
     "@deepseek-ai/dsh-1tmt-workbench-context": "workspace:*",
     "@deepseek-ai/dsh-client-ui-pgy-login": "workspace:*",

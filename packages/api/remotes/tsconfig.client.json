@@ -82,6 +82,9 @@
       "path": "../pgy-login/tsconfig.client.json"
     },
     {
+      "path": "../pgy-pur-receive/tsconfig.client.json"
+    },
+    {
       "path": "../../1tmt/workbench/tsconfig.client.json"
     },
     {

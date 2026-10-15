@@ -63,6 +63,7 @@
     "@deepseek-ai/dsh-api-gateway": "workspace:*",
     "@deepseek-ai/dsh-api-job-controller": "workspace:*",
     "@deepseek-ai/dsh-api-pgy-login": "workspace:*",
+    "@deepseek-ai/dsh-api-pgy-pur-receive": "workspace:*",
     "@deepseek-ai/dsh-1tmt-workbench": "workspace:*",
     "@deepseek-ai/dsh-api-session-controller": "workspace:*",
     "@deepseek-ai/dsh-api-settings-controller": "workspace:*",
