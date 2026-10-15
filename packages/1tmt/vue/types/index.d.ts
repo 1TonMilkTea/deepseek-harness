@@ -54,11 +54,29 @@ export interface LoginBridge {
   onLoggedIn(): void
 }
 
-/** Localized copy for the custom workbench placeholder. */
+/** Localized copy for the custom workbench shell and purchase-inbound pages. */
 export interface CustomWorkbenchLabels {
   readonly title: string
-  readonly intro: string
-  readonly republish: string
+  readonly menuPurchase: string
+  readonly menuPurReceive: string
+  readonly billNo: string
+  readonly billNoPlaceholder: string
+  readonly query: string
+  readonly open: string
+  readonly back: string
+  readonly barcode: string
+  readonly barcodePlaceholder: string
+  readonly stockCode: string
+  readonly stockCodePlaceholder: string
+  readonly addBarcode: string
+  readonly resolveStock: string
+  readonly confirmInbound: string
+  readonly submit: string
+  readonly cancel: string
+  readonly qty: string
+  readonly loading: string
+  readonly emptyList: string
+  readonly emptyEntries: string
 }
 
 /** JSON-scalar cell used in list rows and form fields. */
@@ -75,11 +93,50 @@ export interface CustomWorkbenchSnapshot {
   readonly form?: CustomWorkbenchRow
 }
 
-/** Callbacks the React shell injects; Vue never reaches Cordis. */
+/** Logged-in employee identity needed to assemble STK submit input. */
+export interface WorkbenchEmployee {
+  readonly empinfoId: string
+  readonly staffNumber: string
+  readonly name: string
+  readonly orgId: string
+  readonly orgName: string
+  readonly userId: string
+}
+
+/** Opaque JSON object from a purchase-inbound MCP/Remote call. */
+export type WorkbenchMcpObject = { readonly [key: string]: unknown }
+
+/** Callbacks the React shell injects; Vue never reaches Cordis or Kingdee. */
 export interface CustomWorkbenchBridge {
   readonly labels: CustomWorkbenchLabels
   publishSnapshot(snapshot: CustomWorkbenchSnapshot): Promise<BridgeResult<{ readonly hash: string; readonly updatedAt: number }>>
   clearSnapshot(): Promise<BridgeResult<void>>
+  getEmployee(): Promise<BridgeResult<WorkbenchEmployee | null>>
+  listBills(request: {
+    readonly filterString?: string
+    readonly limit?: number
+    readonly startRow?: number
+  }): Promise<BridgeResult<WorkbenchMcpObject>>
+  viewBill(request: {
+    readonly formId: string
+    readonly id: number
+  }): Promise<BridgeResult<WorkbenchMcpObject>>
+  entityOutputs(request: {
+    readonly orgId?: number
+    readonly id?: number
+    readonly billNo?: string
+  }): Promise<BridgeResult<WorkbenchMcpObject>>
+  getBarcode(request: {
+    readonly orgId?: number
+    readonly barcode: string
+  }): Promise<BridgeResult<WorkbenchMcpObject>>
+  getStockInfo(request: {
+    readonly orgId?: number
+    readonly number: string
+  }): Promise<BridgeResult<WorkbenchMcpObject>>
+  submitReport(request: {
+    readonly inputJson: string
+  }): Promise<BridgeResult<WorkbenchMcpObject>>
 }
 
 /** Injection key string used by both mount helpers and Vue `inject`. */
@@ -101,7 +158,7 @@ export declare function unmountLogin(el: HTMLElement): void
 /**
  * Mount the custom workbench into `el`.
  * @param el - host element owned by the React main panel
- * @param bridge - localized labels and snapshot publish callbacks
+ * @param bridge - localized labels and purchase-inbound Remote callbacks
  */
 export declare function mountCustomWorkbench(el: HTMLElement, bridge: CustomWorkbenchBridge): void
 

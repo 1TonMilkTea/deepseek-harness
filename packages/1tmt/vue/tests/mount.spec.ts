@@ -13,6 +13,32 @@ afterEach(() => {
   document.head.querySelectorAll('style[id^="dsh-1tmt-"]').forEach((node) => { node.remove() })
 })
 
+function workbenchLabels(): CustomWorkbenchBridge['labels'] {
+  return {
+    title: 'Custom',
+    menuPurchase: 'Purchase',
+    menuPurReceive: 'Inbound',
+    billNo: 'Bill',
+    billNoPlaceholder: 'bill',
+    query: 'Search',
+    open: 'Open',
+    back: 'Back',
+    barcode: 'Barcode',
+    barcodePlaceholder: 'code',
+    stockCode: 'Stock',
+    stockCodePlaceholder: 'stock',
+    addBarcode: 'Add',
+    resolveStock: 'Resolve',
+    confirmInbound: 'Confirm',
+    submit: 'Submit',
+    cancel: 'Cancel',
+    qty: 'Qty',
+    loading: 'Loading',
+    emptyList: 'Empty list',
+    emptyEntries: 'Empty entries',
+  }
+}
+
 describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
   it('mounts and unmounts the login island without leaving children', async () => {
     const {
@@ -75,15 +101,26 @@ describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
       value: { hash: 'abc', updatedAt: 1 },
     }))
     const clearSnapshot = vi.fn(async () => ({ ok: true as const, value: undefined }))
+    const listBills = vi.fn(async () => ({
+      ok: true as const,
+      value: { status: 'ok', rows: [] },
+    }))
     const bridge: CustomWorkbenchBridge = {
-      labels: { title: 'Custom', intro: 'Intro text', republish: 'Republish' },
+      labels: workbenchLabels(),
       publishSnapshot,
       clearSnapshot,
+      getEmployee: vi.fn(async () => ({ ok: true as const, value: null })),
+      listBills,
+      viewBill: vi.fn(async () => ({ ok: true as const, value: {} })),
+      entityOutputs: vi.fn(async () => ({ ok: true as const, value: { rows: [] } })),
+      getBarcode: vi.fn(async () => ({ ok: true as const, value: {} })),
+      getStockInfo: vi.fn(async () => ({ ok: true as const, value: {} })),
+      submitReport: vi.fn(async () => ({ ok: true as const, value: {} })),
     }
     mountCustomWorkbench(el, bridge)
     expect(el.querySelector('[data-custom-workbench]')).not.toBeNull()
     expect(el.textContent).toContain('Custom')
-    await vi.waitFor(() => { expect(publishSnapshot).toHaveBeenCalled() })
+    await vi.waitFor(() => { expect(listBills).toHaveBeenCalled() })
     unmountCustomWorkbench(el)
     expect(clearSnapshot).toHaveBeenCalled()
     expect(el.childNodes.length).toBe(0)

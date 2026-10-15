@@ -31,7 +31,7 @@ React hosts import the built `lib/index.js` entry:
 - `mountLogin(el, bridge)` / `unmountLogin(el)`
 - `mountCustomWorkbench(el, bridge)` / `unmountCustomWorkbench(el)`
 
-`LoginBridge` exposes `status`, `getBackendConfig`, `setBackendConfig`, `listOrganizations`, `wmsLogin`, `refreshSessions`, `onLoggedIn`, and `labels`. `CustomWorkbenchBridge` carries `labels`, `publishSnapshot`, and `clearSnapshot`.
+`LoginBridge` exposes `status`, `getBackendConfig`, `setBackendConfig`, `listOrganizations`, `wmsLogin`, `refreshSessions`, `onLoggedIn`, and `labels`. `CustomWorkbenchBridge` carries `labels`, `publishSnapshot` / `clearSnapshot`, and purchase-inbound `getEmployee` / `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport` (Host Remote → RuoYi MCP only; never Kingdee direct). Add new business modules only inside the workbench left menu; do not register more sidebar entries.
 
 Element Plus is MIT-licensed and vendored through npm as a normal dependency of this package.
 

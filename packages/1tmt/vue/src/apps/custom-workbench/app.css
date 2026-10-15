@@ -1,28 +1,63 @@
 .tmt-workbench-root {
   box-sizing: border-box;
   height: 100%;
-  padding: 24px;
+  overflow: hidden;
+}
+
+.tmt-workbench-layout {
+  height: 100%;
+}
+
+.tmt-workbench-aside {
+  border-right: 1px solid var(--el-border-color-lighter, #ebeef5);
+  background: var(--el-bg-color, #fff);
+}
+
+.tmt-workbench-brand {
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.tmt-workbench-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  height: 100%;
   overflow: auto;
 }
 
-.tmt-workbench-title {
-  margin: 0 0 12px;
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 600;
+.tmt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
-.tmt-workbench-intro {
-  margin: 0 0 12px;
-  font-size: 14px;
-  line-height: 22px;
+.tmt-bill-input {
+  width: min(360px, 100%);
+}
+
+.tmt-bill-desc {
+  flex: 1;
+  min-width: 280px;
+}
+
+.tmt-scan-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tmt-scan-input {
+  width: min(260px, 100%);
+}
+
+.tmt-stock-hint {
+  margin: 0;
+  font-size: 13px;
   color: var(--el-text-color-secondary, #909399);
-}
-
-.tmt-workbench-status {
-  margin: 0 0 16px;
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--el-text-color-regular, #606266);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
