@@ -1,0 +1,31 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/1tmt/vue/README.md
+/:
+  en: d3082d025dd48770
+  zh: 9e1bec98ba61f6f5
+/deepseek-ai-dsh-1tmt-vue:
+  en: 725a84408ad0217c
+  zh: 60fcdd71865d7d7c
+/deepseek-ai-dsh-1tmt-vue/summary:
+  en: 5cf5313b51221f94
+  zh: 2dd80b225e4a4510
+/deepseek-ai-dsh-1tmt-vue/table-of-contents:
+  en: d7fbbba70852c433
+  zh: b1d8d953f9d82d8a
+/deepseek-ai-dsh-1tmt-vue/use-this-package:
+  en: f46092827117e705
+  zh: fb00182bad619b72
+/deepseek-ai-dsh-1tmt-vue/model-experience:
+  en: 618008c7641070e7
+  zh: 9411b7c03c9d30ee
+/deepseek-ai-dsh-1tmt-vue/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 3eeb7ebebcd2be23
+/deepseek-ai-dsh-1tmt-vue/known-limitations-and-deferred-work:
+  en: b7a1bbd6e9f849f2
+  zh: e5b421eeeb2b3e33
+/deepseek-ai-dsh-1tmt-vue/known-limitations-and-deferred-work/dev-note:
+  en: 0a59332a1d13320a
+  zh: 5eab36b5be309077

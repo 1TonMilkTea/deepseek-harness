@@ -58,11 +58,28 @@ export interface LoginBridge {
 export interface CustomLabels {
   readonly title: string
   readonly intro: string
+  readonly republish: string
 }
 
-/** Optional callbacks for the custom panel island (empty in the first cut). */
+/** JSON-scalar cell used in list rows and form fields. */
+export type CustomPanelPrimitive = string | number | boolean | null
+
+/** One flat row or form field map published to the Host snapshot store. */
+export type CustomPanelRow = Readonly<Record<string, CustomPanelPrimitive>>
+
+/** Structured view the Vue island publishes for model-visible context. */
+export interface CustomPanelSnapshot {
+  readonly kind: 'empty' | 'list' | 'form'
+  readonly title: string
+  readonly rows: readonly CustomPanelRow[]
+  readonly form?: CustomPanelRow
+}
+
+/** Callbacks the React shell injects; Vue never reaches Cordis. */
 export interface CustomBridge {
   readonly labels: CustomLabels
+  publishSnapshot(snapshot: CustomPanelSnapshot): Promise<BridgeResult<{ readonly hash: string; readonly updatedAt: number }>>
+  clearSnapshot(): Promise<BridgeResult<void>>
 }
 
 /** Injection key string used by both mount helpers and Vue `inject`. */
@@ -82,11 +99,11 @@ export declare function mountLogin(el: HTMLElement, bridge: LoginBridge): void
 export declare function unmountLogin(el: HTMLElement): void
 
 /**
- * Mount the custom half-panel placeholder into `el`.
+ * Mount the custom half-panel into `el`.
  * @param el - host element owned by the React main panel
- * @param bridge - localized labels (optional business callbacks later)
+ * @param bridge - localized labels and snapshot publish callbacks
  */
-export declare function mountCustomPanel(el: HTMLElement, bridge?: CustomBridge): void
+export declare function mountCustomPanel(el: HTMLElement, bridge: CustomBridge): void
 
 /**
  * Tear down a custom-panel island previously mounted on `el`.

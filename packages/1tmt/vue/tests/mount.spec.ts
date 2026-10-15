@@ -70,13 +70,22 @@ describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
     } = await import(pathToFileURL(libEntry).href) as typeof import('@deepseek-ai/dsh-1tmt-vue')
     const el = document.createElement('div')
     document.body.appendChild(el)
+    const publishSnapshot = vi.fn(async () => ({
+      ok: true as const,
+      value: { hash: 'abc', updatedAt: 1 },
+    }))
+    const clearSnapshot = vi.fn(async () => ({ ok: true as const, value: undefined }))
     const bridge: CustomBridge = {
-      labels: { title: 'Custom', intro: 'Intro text' },
+      labels: { title: 'Custom', intro: 'Intro text', republish: 'Republish' },
+      publishSnapshot,
+      clearSnapshot,
     }
     mountCustomPanel(el, bridge)
     expect(el.querySelector('[data-custom-panel]')).not.toBeNull()
     expect(el.textContent).toContain('Custom')
+    await vi.waitFor(() => { expect(publishSnapshot).toHaveBeenCalled() })
     unmountCustomPanel(el)
+    expect(clearSnapshot).toHaveBeenCalled()
     expect(el.childNodes.length).toBe(0)
   })
 })

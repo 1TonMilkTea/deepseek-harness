@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/1tmt/panel-context/README.md
+/:
+  en: 9f021bffa3341cb4
+  zh: f2595594de67fa39
+/deepseek-ai-dsh-1tmt-panel-context:
+  en: 24f55b9a4d739b03
+  zh: 9943eee83763f80c
+/deepseek-ai-dsh-1tmt-panel-context/summary:
+  en: 1f0adc368e3281fd
+  zh: 50dd5f8cd38e8b3c
+/deepseek-ai-dsh-1tmt-panel-context/table-of-contents:
+  en: d7fbbba70852c433
+  zh: b1d8d953f9d82d8a
+/deepseek-ai-dsh-1tmt-panel-context/use-this-package:
+  en: 60d58dc6048eaa13
+  zh: c97800496311009c
+/deepseek-ai-dsh-1tmt-panel-context/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-1tmt-panel-context/model-experience/custom-panel-view-context:
+  en: 1476916abb6e6532
+  zh: 9e6be8815cbd91a1
+/deepseek-ai-dsh-1tmt-panel-context/model-experience/custom-panel-view-context/what-the-model-sees:
+  en: 4f200fe9e6dceb83
+  zh: b7c80caeeec3d330
+/deepseek-ai-dsh-1tmt-panel-context/model-experience/custom-panel-view-context/what-the-model-sees/summary-reading:
+  en: 959fd01d83c09a51
+  zh: f6bda5a5ad2121db
+/deepseek-ai-dsh-1tmt-panel-context/model-experience/custom-panel-view-context/token-effect:
+  en: 2898db327c910c6d
+  zh: 4392a65620cd7d72
+/deepseek-ai-dsh-1tmt-panel-context/model-experience/custom-panel-view-context/kv-cache-effect:
+  en: b3381dba58dab8e2
+  zh: 681dd199d86ef112
+/deepseek-ai-dsh-1tmt-panel-context/known-limitations-and-deferred-work:
+  en: 954d6786f7a4bdff
+  zh: e63c77b18bca9301
+/deepseek-ai-dsh-1tmt-panel-context/known-limitations-and-deferred-work/dev-note:
+  en: ebf33b0aa6fa9f30
+  zh: c4dff42202f674c8

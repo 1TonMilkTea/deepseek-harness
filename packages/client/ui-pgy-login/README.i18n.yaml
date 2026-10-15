@@ -1,0 +1,31 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/client/ui-pgy-login/README.md
+/:
+  en: 0cc956a6f0030cd1
+  zh: bffaaf63803f2a7d
+/deepseek-ai-dsh-client-ui-pgy-login:
+  en: 77fb1382c0bf3c77
+  zh: ad4695294824fa9f
+/deepseek-ai-dsh-client-ui-pgy-login/summary:
+  en: 7aa9870dee1a31d3
+  zh: 827d9fb5d1035837
+/deepseek-ai-dsh-client-ui-pgy-login/table-of-contents:
+  en: d7fbbba70852c433
+  zh: b1d8d953f9d82d8a
+/deepseek-ai-dsh-client-ui-pgy-login/use-this-package:
+  en: 31184f8ce85196fc
+  zh: 8cfe8175b3f72939
+/deepseek-ai-dsh-client-ui-pgy-login/model-experience:
+  en: 618008c7641070e7
+  zh: 9411b7c03c9d30ee
+/deepseek-ai-dsh-client-ui-pgy-login/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 3eeb7ebebcd2be23
+/deepseek-ai-dsh-client-ui-pgy-login/known-limitations-and-deferred-work:
+  en: 0f74d132dd604534
+  zh: b65734c253d993b7
+/deepseek-ai-dsh-client-ui-pgy-login/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: e88aeb617ffb74ea

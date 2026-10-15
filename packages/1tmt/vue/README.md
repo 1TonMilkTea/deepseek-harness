@@ -5,9 +5,11 @@ kind: "package-reference"
 
 # @deepseek-ai/dsh-1tmt-vue
 
+English | [中文](README.zh.md)
+
 ## Summary
 
-Self-contained Vue 3 + Element Plus (MIT) UI islands for the 1tmt product pages: fullscreen WMS login and the custom half-panel placeholder. React Cordis hosts call `mountLogin` / `mountCustomPanel` and pass a typed bridge; Vue never imports Cordis. Product work on these screens should change this package only. For day-to-day extension steps (build, bridge, do-not-touch), use the Chinese developer guide [docs/1tmt/README.md](../../../docs/1tmt/README.md).
+Self-contained Vue 3 + Element Plus (MIT) UI islands for the 1tmt product pages: fullscreen WMS login and the custom half-panel. React Cordis hosts call `mountLogin` / `mountCustomPanel` and pass a typed bridge; Vue never imports Cordis. Product work on these screens should change this package only. For day-to-day extension steps (build, bridge, context publish), use the developer guide [docs/1tmt/README.md](../../../docs/1tmt/README.md).
 
 ## Table of Contents
 
@@ -27,9 +29,9 @@ pnpm --filter @deepseek-ai/dsh-1tmt-vue build
 React hosts import the built `lib/index.js` entry:
 
 - `mountLogin(el, bridge)` / `unmountLogin(el)`
-- `mountCustomPanel(el, bridge?)` / `unmountCustomPanel(el)`
+- `mountCustomPanel(el, bridge)` / `unmountCustomPanel(el)`
 
-`LoginBridge` exposes `status`, `getBackendConfig`, `setBackendConfig`, `listOrganizations`, `wmsLogin`, `refreshSessions`, `onLoggedIn`, and `labels`. `CustomBridge` currently carries only `labels`.
+`LoginBridge` exposes `status`, `getBackendConfig`, `setBackendConfig`, `listOrganizations`, `wmsLogin`, `refreshSessions`, `onLoggedIn`, and `labels`. `CustomBridge` carries `labels`, `publishSnapshot`, and `clearSnapshot`.
 
 Element Plus is MIT-licensed and vendored through npm as a normal dependency of this package.
 

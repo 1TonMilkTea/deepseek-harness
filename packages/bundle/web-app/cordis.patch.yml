@@ -146,6 +146,15 @@
         clientName: harness-desktop
         mcpServerName: 1tmt
 
+    # 1TMT：自定义半屏快照 Host 存储；卸掉后对话不再自动读到半屏数据。
+    - id: 1tmt-panel
+      name: '@deepseek-ai/dsh-1tmt-panel'
+    - id: 1tmt-panel-context
+      name: '@deepseek-ai/dsh-1tmt-panel-context'
+      config:
+        injectFullRows: false
+        maxPayloadChars: 4000
+
     # Workspace file service: bounded read, directory listing, and the
     # agent-write change feed inside the session workspace root.
     - id: terminal-controller

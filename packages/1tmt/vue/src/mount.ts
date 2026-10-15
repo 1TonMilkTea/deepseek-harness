@@ -37,15 +37,15 @@ export function unmountLogin(el: HTMLElement): void {
 }
 
 /**
- * Mount the custom half-panel placeholder into `el`.
+ * Mount the custom half-panel into `el`.
  * @param el - host element owned by the React main panel
- * @param bridge - localized labels (optional business callbacks later)
+ * @param bridge - localized labels and snapshot publish callbacks
  */
-export function mountCustomPanel(el: HTMLElement, bridge?: CustomBridge): void {
+export function mountCustomPanel(el: HTMLElement, bridge: CustomBridge): void {
   unmountCustomPanel(el)
   ensureCustomPanelStyles()
   const app = createApp(CustomPanelApp)
-  if (bridge !== undefined) app.provide(BRIDGE_KEY, bridge)
+  app.provide(BRIDGE_KEY, bridge)
   app.use(ElementPlus, { locale: zhCn })
   app.mount(el)
   customApps.set(el, app)

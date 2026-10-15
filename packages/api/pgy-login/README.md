@@ -5,6 +5,8 @@ kind: "package-reference"
 
 # @deepseek-ai/dsh-api-pgy-login
 
+English | [中文](README.zh.md)
+
 ## Summary
 
 Host Remote namespace `pgyLogin` for RuoYi backend URL configuration, organization listing, and WMS employee login via MCP tools. The Web overlay consumes this Remote through a typed bridge; Session create and prompt stay gated until login succeeds.

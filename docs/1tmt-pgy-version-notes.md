@@ -1,85 +1,87 @@
-# 1TMT / 蒲公英：Harness 版本说明（开发向）
+# 1TMT / Puyuan: Harness version notes (developers)
 
-面向本仓库相对上游 `c288ba2`（Import DeepSeek Harness）之后的集成提交。说明每次**改了什么、代码怎么走、为什么这么改**。联调操作见 [1tmt-ruoyi-wms-integration.md](./1tmt-ruoyi-wms-integration.md)。对端若依提交见 RuoYi-Vue 仓库 `docs/1tmt-PGY版本说明.md`。
+English | [中文](1tmt-pgy-version-notes.zh.md)
 
-当前分支 tip：见 `1tmt-deepseek-harness-windows` 最新提交（含「客户端专属 MCP 会话令牌」）。
+Covers integration commits in this repository after upstream `c288ba2` (Import DeepSeek Harness). For each change: **what changed, how the code runs, and why**. Day-to-day ops: [1tmt-ruoyi-wms-integration.md](./1tmt-ruoyi-wms-integration.md). Counterpart RuoYi commits: RuoYi-Vue repo `docs/1tmt-PGY版本说明.md`.
+
+Current branch tip: latest on `1tmt-deepseek-harness-windows` (includes “client-scoped MCP session tokens”).
 
 ---
 
-## 总览：交付了什么
+## Overview: what shipped
 
-| 能力 | 怎么实现的 |
+| Capability | How it is implemented |
 |------|------------|
-| 本机 Web 调若依 MCP | `pgy-login` 运行时动态挂载 `@deepseek-ai/dsh-mcp-client`（`serverName: 1tmt`），工具名 `mcp__1tmt__*` |
-| 业务员只配若依地址 | 页面 / 设置填 Base URL → `POST /mcp/client-sessions` 领会话令牌；关程序 `DELETE` |
-| 员工 WMS 登录门闩 | Host `pgyLogin` Remote + 全屏 `ui-pgy-login`；未登录拒绝 create/fork/prompt/list/search |
-| 按员工隔离本机会话 | 登录后 `sessionPersistence.bindRoot(…/employees/<orgId>__<staffNumber>/)`；首次登录迁旧共享目录 |
-| 换人登录 | 侧栏「退出登录」→ dispose Agents → `closeOpenWriters` → 绑回 baseRoot → 页面 reload |
-| Windows 分发 | `pack:desktop-1tmt` 打 Electron 桌面安装包（NSIS）；用户数据固定在 `%LOCALAPPDATA%\Harness` |
-| 品牌 | favicon / 侧栏 / 空态用货车 PNG，去掉可复活鲸鱼的 BrandWordmark 路径 |
-| 业务 MCP 约定 | persona 要求先调企业版规则 MCP，再查单据列表 |
+| Local Web → RuoYi MCP | `pgy-login` mounts `@deepseek-ai/dsh-mcp-client` at runtime (`serverName: 1tmt`); tool names `mcp__1tmt__*` |
+| Operators only set the RuoYi URL | Page / Settings Base URL → `POST /mcp/client-sessions` for a session token; `DELETE` on quit |
+| Employee WMS login gate | Host `pgyLogin` Remote + fullscreen `ui-pgy-login`; reject create/fork/prompt/list/search when logged out |
+| Per-employee local sessions | After login `sessionPersistence.bindRoot(…/employees/<orgId>__<staffNumber>/)`; first login migrates the old shared directory |
+| Switch employee | Sidebar “Sign out” → dispose Agents → `closeOpenWriters` → rebind baseRoot → page reload |
+| Windows distribution | `pack:desktop-1tmt` builds an Electron NSIS installer; user data fixed under `%LOCALAPPDATA%\Harness` |
+| Branding | Truck PNG for favicon / sidebar / empty state; remove BrandWordmark paths that can revive the whale |
+| Business MCP convention | Persona requires enterprise rule MCP first, then bill list queries |
 
 ---
 
-## 按提交说明（时间正序）
+## Per-commit notes (chronological)
 
-### `258a332` — 为 dsh web 接入若依 MCP，并提供 Windows 绿色包
+### `258a332` — Wire RuoYi MCP into dsh web and ship a Windows portable zip
 
-**改了什么**
+**What changed**
 
-- `packages/bundle/web-app/cordis.patch.yml`：挂 MCP 客户端（当时 id/`serverName` 为 `ruoyi`）。
-- `scripts/pack-portable-web.ts`：打解压即用 zip（内嵌 Node、启动/配置脚本）；补 `pnpm deploy` 漏掉的 workspace 包。
+- `packages/bundle/web-app/cordis.patch.yml`: mount the MCP client (id/`serverName` was `ruoyi` then).
+- `scripts/pack-portable-web.ts`: unpack-and-run zip (bundled Node, start/config scripts); backfill workspace packages missed by `pnpm deploy`.
 
-**逻辑**
+**How it runs**
 
-`dsh web` Host 进程内 MCP 客户端连 `http://127.0.0.1:8081/mcp`，请求头 `Authorization: Bearer …`。若依未启动时 Web 仍可打开；模型侧工具名为 `mcp__ruoyi__` + 若依原名。
+`dsh web` Host process MCP client connects to `http://127.0.0.1:8081/mcp` with `Authorization: Bearer …`. Web still opens if RuoYi is down; model-facing tool names are `mcp__ruoyi__` + the RuoYi original name.
 
-**为什么**
+**Why**
 
-一人一机本地 Agent 调服务器金蝶能力；绿色包给不会装 Node 的现场 Windows。
-
----
-
-### `1626d69` — MCP 客户端改为 1tmt 命名空间
-
-**改了什么**
-
-- `serverName` / 环境变量：`DSH_RUOYI_MCP_*` → `DSH_1TMT_MCP_*`。
-- 文档改名 `1tmt-mcp.md`。
-
-**逻辑**
-
-公开工具名变为 `mcp__1tmt__workbuddyPing`、`kduPing`、`kdePing`、`pgyPing` 等。
-
-**为什么**
-
-产品命名是 1TMT，与若依侧按模块拆分的工具名对齐，避免长期挂着临时 `ruoyi` 前缀。
+One PC, one local Agent calling server-side Kingdee capabilities; the portable zip is for field Windows machines without Node.
 
 ---
 
-### `8e24320` — 说明 dsh web 连接的 MCP 工具分属
+### `1626d69` — Rename the MCP client namespace to 1tmt
 
-**改了什么**
+**What changed**
 
-文档：标明 WorkBuddy / 金蝶登录 / pgy 三类工具归属。
+- `serverName` / env vars: `DSH_RUOYI_MCP_*` → `DSH_1TMT_MCP_*`.
+- Docs renamed to `1tmt-mcp.md`.
 
-**为什么**
+**How it runs**
 
-联调时区分「连通性 ping」和「业务 MCP」，减少误调。
+Public tool names become `mcp__1tmt__workbuddyPing`, `kduPing`, `kdePing`, `pgyPing`, and so on.
+
+**Why**
+
+Product name is 1TMT; align with RuoYi’s per-module tool names and drop the temporary `ruoyi` prefix.
 
 ---
 
-### `ff538cc` — 接入蒲公英 WMS 登录、Inno 安装包，绿色包不卸开发依赖
+### `8e24320` — Document which MCP tools dsh web connects to
 
-**改了什么**
+**What changed**
 
-- 新包 `packages/api/pgy-login`：Host Remote `listOrganizations` / `wmsLogin` / `status`；内部 `tools.execute(mcp__1tmt__pgy*)`。
-- 新包 `packages/client/ui-pgy-login`：全屏登录层（组织 + 员工编码 + 密码）。
-- `session-controller`：有 `pgyLogin` 时未登录拒绝建会话/提问。
-- `scripts/dsh-portable-web-setup.iss`：Inno 人均安装。
-- `pack-portable-web`：打包结束后 `pnpm install`，避免开发机依赖被卸掉。
+Docs: label WorkBuddy / Kingdee login / pgy tool ownership.
 
-**逻辑**
+**Why**
+
+Separate connectivity pings from business MCP during integration and reduce wrong calls.
+
+---
+
+### `ff538cc` — Puyuan WMS login, Inno installer, portable zip keeps dev deps
+
+**What changed**
+
+- New `packages/api/pgy-login`: Host Remote `listOrganizations` / `wmsLogin` / `status`; internally `tools.execute(mcp__1tmt__pgy*)`.
+- New `packages/client/ui-pgy-login`: fullscreen login (org + staff number + password).
+- `session-controller`: when `pgyLogin` is present, reject create/prompt while logged out.
+- `scripts/dsh-portable-web-setup.iss`: Inno per-user install.
+- `pack-portable-web`: `pnpm install` after pack so the developer machine is not stripped of deps.
+
+**How it runs**
 
 ```
 浏览器 LoginOverlay
@@ -90,54 +92,54 @@
   → 此后 create/prompt 才放行
 ```
 
-管理员账号只在服务器 `third.login.enterprise`，不进登录页。
+Admin accounts stay in server `third.login.enterprise` and never appear on the login page.
 
-**为什么**
+**Why**
 
-业务员必须先过 WMS 身份，才能用本机 Agent；安装包路径与绿色包并存，适配 IT 分发。
-
----
-
-### `229e198` — 配置.cmd 补充跨机对接若依 MCP 的中文备注
-
-**改了什么**
-
-绿色包/安装目录里的 `配置.cmd` 注释：写清 `DSH_1TMT_MCP_URL` 在「Harness 与若依不同机」时要改成 `http://若依IP:8081/mcp`。
-
-**为什么**
-
-现场常见「PC 跑 Harness、服务器跑若依」，默认 `127.0.0.1` 会连错。
+Operators must pass WMS identity before using the local Agent; installer and portable paths coexist for IT distribution.
 
 ---
 
-### `9297dc4` — 货车品牌图标 + 金蝶规则智能体先行约定
+### `229e198` — Note cross-machine RuoYi MCP URL in 配置.cmd
 
-**改了什么**
+**What changed**
 
-- `apps/web/public`：favicon / brand-mark PNG；去掉易复活鲸鱼的 BrandWordmark 回退。
-- `cordis.patch.yml` persona：要求业务调用前先调企业版规则 MCP。
-- 同步集成文档中的收料 / 规则 / 通用列表工具名。
+Comments in portable/install `配置.cmd`: when Harness and RuoYi are on different machines, set `DSH_1TMT_MCP_URL` to `http://若依IP:8081/mcp`.
 
-**逻辑**
+**Why**
 
-模型按 system/persona 先 `pgyKdeEnterpriseApiRules`，再 `pgyListReceiveBills` 或 `pgyKdeExecuteBillQuery`。
-
-**为什么**
-
-品牌统一；未读规则就乱调 FormId/FieldKeys 会打出错误金蝶请求。
+Field setups often run Harness on a PC and RuoYi on a server; default `127.0.0.1` connects to the wrong host.
 
 ---
 
-### `b3cc4f2` — 按员工隔离本机会话 + 侧栏退出登录
+### `9297dc4` — Truck brand icons + Kingdee rules-first agent convention
 
-**改了什么**
+**What changed**
 
-- `pgy-login/employee-scope.ts`：根目录 `employees/<encode(orgId__staffNumber)>/`；首次登录迁共享历史 + `.pgy-employee-scope.json`。
-- `session-persistence(-jsonl)`：`getBaseRoot` / `bindRoot`。
-- `session-controller`：list/search 同样要求登录。
-- `LogoutButton` → `pgyLogin.logout` → `location.reload()`。
+- `apps/web/public`: favicon / brand-mark PNG; remove BrandWordmark fallbacks that revive the whale.
+- `cordis.patch.yml` persona: call enterprise rule MCP before business calls.
+- Sync receive-bill / rules / generic list tool names in the integration doc.
 
-**逻辑**
+**How it runs**
+
+The model follows system/persona: `pgyKdeEnterpriseApiRules` first, then `pgyListReceiveBills` or `pgyKdeExecuteBillQuery`.
+
+**Why**
+
+Unified branding; calling FormId/FieldKeys without rules produces bad Kingdee requests.
+
+---
+
+### `b3cc4f2` — Per-employee local sessions + sidebar sign-out
+
+**What changed**
+
+- `pgy-login/employee-scope.ts`: root `employees/<encode(orgId__staffNumber)>/`; first login migrates shared history + `.pgy-employee-scope.json`.
+- `session-persistence(-jsonl)`: `getBaseRoot` / `bindRoot`.
+- `session-controller`: list/search also require login.
+- `LogoutButton` → `pgyLogin.logout` → `location.reload()`.
+
+**How it runs**
 
 ```
 wmsLogin 成功
@@ -152,57 +154,57 @@ logout
   → 前端整页刷新，重新出现登录层
 ```
 
-隔离键：`orgId + staffNumber`（同工号跨组织不撞车）。已登录状态下换另一个员工会被拒绝，必须先退出。
+Isolation key: `orgId + staffNumber` (same staff number across orgs does not collide). Switching employees while logged in is rejected; sign out first.
 
-**为什么**
+**Why**
 
-同一 Windows 用户、同一安装目录下多人轮流用时，不能共用一份会话历史。
-
----
-
-### `15b5bb9` — 还原无关 persistence README + 类型检查
-
-**改了什么**
-
-- 还原 `session-persistence*` 的 README（与本次登录核心无关的文档改动撤回）。
-- list/search 门闩测试补 `defaultModelSelection`。
-
-**为什么**
-
-版本说明应落在集成文档/Agent Note，避免 persistence 公共包 README 被产品私有逻辑带偏；修好推送门禁。
+Several people sharing one Windows user and one install directory must not share one session history.
 
 ---
 
-### `0b37d21` — 修复退出登录 bindRoot 与写句柄竞态
+### `15b5bb9` — Revert unrelated persistence README + typecheck
 
-**改了什么**
+**What changed**
 
-- `SessionPersistence.closeOpenWriters()`（jsonl 实现：await 关闭所有 write handle）。
-- `logout` 顺序：dispose Agents → **await closeOpenWriters** → bindRoot。
+- Revert `session-persistence*` README edits unrelated to this login core.
+- list/search gate tests add `defaultModelSelection`.
 
-**逻辑**
+**Why**
 
-Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立刻 `bindRoot` 会撞上 `cannot bindRoot while write handles are open`。
-
-**为什么**
-
-否则侧栏「退出登录」在已有打开会话时 RPC 失败，页面无法换人。
+Version notes belong in integration docs / Agent Notes; keep public persistence package READMEs free of product-private logic; fix push gates.
 
 ---
 
-### 桌面安装包 — Electron 桌面壳替换绿色 zip / 启动.bat / Inno
+### `0b37d21` — Fix logout bindRoot vs write-handle race
 
-**改了什么**
+**What changed**
 
-- 新增私有 workspace `desktop-1tmt/`（不发布、不进 TS 聚合）：
-  - `src/main.ts`：Electron 主进程。单实例；先显示 `assets/splash.html`；后台 `windowsHide` 拉起 `payload/runtime/node.exe payload/app/lib/bin.js web --no-open`；读到 stdout 的 `dsh web: <URL>` 后在本窗口 `loadURL`；外链交给系统浏览器；关窗 `taskkill /T /F` 结束整棵进程树。
-  - `src/config-cmd.ts`：`配置.cmd` 模板与解析（只读 `set` 行，不执行 cmd）。
-  - `src/host-output.ts`：解析就绪行、按行切分 stdout。
-  - `package.json` 的 `build` 段：electron-builder NSIS，按用户安装，`extraResources` 带 `payload`。
-- 新增 `scripts/pack-desktop-1tmt.ts`（根脚本 `pack:desktop-1tmt`）：沿用原绿色包的 deploy、补齐 workspace 包、下载并校验 Node、smoke 步骤，产物写入 `dist/desktop-1tmt/payload`，恢复开发依赖后构建壳并调用 electron-builder。
-- 删除 `scripts/pack-portable-web.ts`、`compile-portable-web-setup.ts`、`dsh-portable-web-setup.iss` 及对应 spec、根脚本 `pack:portable-web(:setup)`。
+- `SessionPersistence.closeOpenWriters()` (jsonl: await-close every write handle).
+- `logout` order: dispose Agents → **await closeOpenWriters** → bindRoot.
 
-**逻辑**
+**How it runs**
+
+On Agent teardown, `session/disposed` only **asynchronously** `handle.close()`; an immediate `bindRoot` used to hit `cannot bindRoot while write handles are open`.
+
+**Why**
+
+Otherwise sidebar “Sign out” fails the RPC when a session is open and the page cannot switch employees.
+
+---
+
+### Desktop installer — Electron shell replaces portable zip / 启动.bat / Inno
+
+**What changed**
+
+- New private workspace `desktop-1tmt/` (unpublished, not in the TS aggregate):
+  - `src/main.ts`: Electron main. Single instance; show `assets/splash.html` first; background `windowsHide` spawn `payload/runtime/node.exe payload/app/lib/bin.js web --no-open`; on stdout `dsh web: <URL>` call `loadURL` in the same window; external links to the system browser; on close `taskkill /T /F` the whole process tree.
+  - `src/config-cmd.ts`: `配置.cmd` template and parse (read `set` lines only; do not execute cmd).
+  - `src/host-output.ts`: parse ready lines; split stdout by line.
+  - `package.json` `build`: electron-builder NSIS, per-user install, `extraResources` carries `payload`.
+- New `scripts/pack-desktop-1tmt.ts` (root script `pack:desktop-1tmt`): reuse the old portable deploy, backfill workspace packages, download/verify Node, smoke steps, write `dist/desktop-1tmt/payload`, restore dev deps, build the shell, invoke electron-builder.
+- Delete `scripts/pack-portable-web.ts`, `compile-portable-web-setup.ts`, `dsh-portable-web-setup.iss`, matching specs, and root scripts `pack:portable-web(:setup)`.
+
+**How it runs**
 
 ```
 双击 Harness
@@ -214,29 +216,29 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 关闭窗口 → taskkill /T /F 结束 dsh web 及其工具子进程
 ```
 
-安装目录（默认 `%LOCALAPPDATA%\Programs\Harness`）与用户数据目录 `%LOCALAPPDATA%\Harness` 分离，升级、卸载不碰 `配置.cmd` 与 `data\`。
+Install dir (default `%LOCALAPPDATA%\Programs\Harness`) is separate from user data `%LOCALAPPDATA%\Harness`; upgrade/uninstall leave `配置.cmd` and `data\` alone.
 
-**为什么**
+**Why**
 
-现场希望像 WorkBuddy 一样是一个独立桌面程序：没有黑色命令行窗口，不依赖默认浏览器，关窗即停服务。上游 `apps/desktop` 是完整的 Electron 产品（自带 Host 组合与发布流程），改造成本高；私有薄壳只负责启动和展示，复用已验证的 `dsh web` 组合与登录流程。
+Field users want a standalone desktop app like WorkBuddy: no black console, no default browser, stop the service on window close. Upstream `apps/desktop` is a full Electron product (own Host composition and release); a thin private shell only starts and displays, reusing the proven `dsh web` composition and login flow.
 
 ---
 
-### 客户端专属 MCP 会话令牌 + 页面配置若依地址
+### Client-scoped MCP session tokens + page-configured RuoYi URL
 
-**改了什么**
+**What changed**
 
 - `packages/api/pgy-login`
-  - `backend-config.ts`：`$DSH_HOME/1tmt-backend.json` 只存地址；优先级 页面 > `DSH_1TMT_MCP_URL` > 开发默认。
-  - `session-client.ts`：`POST/DELETE {base}/mcp/client-sessions`。
-  - `index.ts`：Remote `getBackendConfig` / `setBackendConfig`；启动或改地址后签发令牌并 `ctx.plugin(mcp-client)` 热挂载；dispose / SIGTERM 时销毁会话。
+  - `backend-config.ts`: `$DSH_HOME/1tmt-backend.json` stores only the URL; precedence page > `DSH_1TMT_MCP_URL` > developer default.
+  - `session-client.ts`: `POST/DELETE {base}/mcp/client-sessions`.
+  - `index.ts`: Remote `getBackendConfig` / `setBackendConfig`; issue a token and hot-mount `ctx.plugin(mcp-client)` after start or URL change; destroy the session on dispose / SIGTERM.
 - `packages/client/ui-pgy-login`
-  - 登录前「后端配置」表单；设置页新增「后端 / 若依」区块；文案不提 Token。
-- `cordis.patch.yml`：去掉启动时写死的 `mcp-1tmt` url/headers；由 `pgy-login` 运行时挂载。
-- `desktop-1tmt`：`before-quit` 先 `SIGTERM`（给 Host 发 DELETE 的时间），超时再 `taskkill`；`配置.cmd` 改为 IT 可选预置 Base URL。
-- 文档：`README-1TMT.md`、`docs/1tmt-ruoyi-wms-integration.md`；Host 单测 `backend-config` / `pgy-login`。
+  - Pre-login “Backend config” form; Settings “Backend / RuoYi” block; copy never mentions Token.
+- `cordis.patch.yml`: remove hard-coded startup `mcp-1tmt` url/headers; `pgy-login` mounts at runtime.
+- `desktop-1tmt`: `before-quit` sends `SIGTERM` first (time for Host `DELETE`), then `taskkill` on timeout; `配置.cmd` becomes an optional IT Base URL preset.
+- Docs: `README-1TMT.md`, `docs/1tmt-ruoyi-wms-integration.md`; Host unit tests `backend-config` / `pgy-login`.
 
-**逻辑**
+**How it runs**
 
 ```
 未配置地址 → LoginOverlay 显示「后端配置」
@@ -249,30 +251,30 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 关程序 → Host DELETE 会话；桌面壳 SIGTERM → 短等待 → 强杀
 ```
 
-**为什么**
+**Why**
 
-业务员不应手填共享 MCP Token。地址可在页面配置；令牌由若依签发、Redis 记账、关程序销毁。静态 `mcp.auth-token` / `DSH_1TMT_MCP_TOKEN` 仍留给运维旧路径。
-
----
-
-## 开发机验证清单
-
-1. 改 Host（如 `pgy-login`）：对该包 `tsc -b tsconfig.host.json` + `pnpm run bundle`（必要时再跑 typert 生成），重启 `pnpm dsh web`。
-2. 改 Client 插件（如 `ui-pgy-login`）：对该包 `pnpm run bundle`，再重启 web；或整库 `pnpm run build`。
-3. 改页面壳/品牌：`pnpm run build:web` 后重启。
-4. 不知道改了哪些：根目录 `pnpm run build`，再重启 + 浏览器强制刷新。
-5. 会话令牌联调：无 Bearer 调 `/mcp` → 401；`POST /mcp/client-sessions` 后再调应成功；`DELETE` 后同一 token 再 401。
+Operators must not paste a shared MCP Token. The URL is page-configurable; RuoYi issues the token, Redis tracks it, and quit destroys it. Static `mcp.auth-token` / `DSH_1TMT_MCP_TOKEN` remain for the legacy ops path.
 
 ---
 
-## 关键代码地图
+## Developer verification checklist
 
-| 包 / 文件 | 职责 |
+1. Host edits (e.g. `pgy-login`): `tsc -b tsconfig.host.json` for that package + `pnpm run bundle` (and typert generation when needed), then restart `pnpm dsh web`.
+2. Client plugin edits (e.g. `ui-pgy-login`): `pnpm run bundle` for that package, restart web; or full-repo `pnpm run build`.
+3. Shell/branding edits: `pnpm run build:web`, then restart.
+4. Unsure what changed: root `pnpm run build`, restart + hard-refresh the browser.
+5. Session-token integration: `/mcp` without Bearer → 401; succeed after `POST /mcp/client-sessions`; same token → 401 again after `DELETE`.
+
+---
+
+## Related code map
+
+| Package / file | Role |
 |-----------|------|
-| `packages/api/pgy-login` | Base URL、会话令牌、动态 MCP、登录 Remote、员工根、logout |
-| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「后端 / 若依」、退出按钮 |
-| `packages/api/session-controller` | 未登录门闩 |
+| `packages/api/pgy-login` | Base URL, session token, dynamic MCP, login Remote, employee root, logout |
+| `packages/client/ui-pgy-login` | Pre/post-login backend config, login overlay, Settings “Backend / RuoYi”, sign-out |
+| `packages/api/session-controller` | Logged-out gate |
 | `packages/session/session-persistence*` | `bindRoot` / `closeOpenWriters` |
-| `packages/bundle/web-app/cordis.patch.yml` | 登录插件装配、persona（MCP 由 pgy-login 挂载） |
-| `desktop-1tmt/` | Electron 桌面壳（启动页、后台 dsh web、优雅退出） |
-| `scripts/pack-desktop-1tmt.ts` | payload 部署 + NSIS 安装包 |
+| `packages/bundle/web-app/cordis.patch.yml` | Login plugin wiring, persona (MCP mounted by pgy-login) |
+| `desktop-1tmt/` | Electron desktop shell (splash, background dsh web, graceful quit) |
+| `scripts/pack-desktop-1tmt.ts` | payload deploy + NSIS installer |

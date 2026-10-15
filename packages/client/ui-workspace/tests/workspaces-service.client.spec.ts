@@ -14,7 +14,7 @@ import type { ClientRemote, DirectoryListing } from '@deepseek-ai/dsh-api-remote
 import { RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
 import type { RemoteResult } from '@deepseek-ai/dsh-api-remotes/client'
 import { SessionId } from '@deepseek-ai/dsh-session/types'
-import { LayoutController } from '@deepseek-ai/dsh-client-ui-layout/client'
+import { LayoutController, SPLIT_WITH_CONVERSATION_PANEL_ID } from '@deepseek-ai/dsh-client-ui-layout/client'
 import type { MainPanelId } from '@deepseek-ai/dsh-client-ui-layout/client'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import type { DraftInitializationOptions, SessionInputResolver } from '@deepseek-ai/dsh-client-ui-conversation/client'
@@ -428,6 +428,28 @@ describe('UiWorkspaceService', () => {
     expect(b.selectPanel).toHaveBeenCalledWith(null)
     expect(b.sessions.retain).toHaveBeenCalledWith(sid('target'), { source: 'mainView' })
     expect(b.sessions.refreshProjections).not.toHaveBeenCalled()
+  })
+
+  it('keeps a conversation-split panel when opening a Workspace from the Conversation chrome', async () => {
+    const b = bench({
+      workspaces: workspaceState([workspace('a')]),
+      sessions: sessionState([], 'pending'),
+    })
+    b.layout.panelInfo.set({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
+    b.selectPanel.mockClear()
+    await b.uiWorkspace.openWorkspace(wid('a'))
+    expect(b.selectPanel).not.toHaveBeenCalled()
+    expect(b.layout.panelInfo.getSnapshot()).toEqual({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
+    expect(b.sessions.retain).toHaveBeenCalledWith(sid('created-a'), { source: 'mainView' })
+  })
+
+  it('keeps a conversation-split panel when opening a Session', () => {
+    const b = bench()
+    b.layout.panelInfo.set({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
+    b.selectPanel.mockClear()
+    b.uiWorkspace.openSession(sid('target'))
+    expect(b.selectPanel).not.toHaveBeenCalled()
+    expect(b.layout.panelInfo.getSnapshot()).toEqual({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
   })
 
   it('keeps the current panel when retaining the target fails', () => {

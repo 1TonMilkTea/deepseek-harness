@@ -5,9 +5,11 @@ kind: "package-reference"
 
 # @deepseek-ai/dsh-client-ui-custom-panel
 
+English | [中文](README.zh.md)
+
 ## Summary
 
-Adds a sidebar entry **Custom** / **自定义按钮** (`order: 20`, after Plugins and Automation tasks). Selecting it opens a main panel that AppFrame mounts beside the Conversation (≈50/50). The left pane hosts the Vue Element Plus island from `@deepseek-ai/dsh-1tmt-vue`; the right pane is the existing Conversation.
+Adds a sidebar entry **Custom** / **自定义按钮** (`order: 20`, after Plugins and Automation tasks). Selecting it opens a main panel that AppFrame mounts beside the Conversation (≈50/50). The left pane hosts the Vue Element Plus island from `@deepseek-ai/dsh-1tmt-vue`; the right pane is the existing Conversation. The shell wires `CustomBridge.publishSnapshot` to Host `ctx.remote.tmtPanel`.
 
 ## Table of Contents
 
@@ -27,7 +29,7 @@ Ship it in the web-app composition (`cordis.patch.yml`). The panel id is the lit
 <a id="model-experience"></a>
 ## Model Experience
 
-None, as the package contributes browser presentation only; nothing here reaches a model request.
+Indirectly, through `@deepseek-ai/dsh-1tmt-panel-context`, which turns Host `tmtPanel` snapshots into durable pre-step messages.
 
 #### KV Cache effect
 
@@ -37,7 +39,7 @@ None; this package neither assembles nor sends a provider request.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Left pane is a Vue placeholder** — extend `packages/1tmt/vue` custom-panel App for product UI; this package stays a thin mount host.
+- **Left pane is Vue-owned** — extend `packages/1tmt/vue` custom-panel App for product UI; this package stays a thin mount host.
 - **Fixed split width** — AppFrame uses ≈50/50 panes without a drag handle.
 
 <a id="dev-note"></a>

@@ -1,10 +1,17 @@
-# 1TMT：dsh web 对接若依 MCP 与蒲公英 WMS 登录
+---
+description: "1tmt integration: dsh web talks to RuoYi MCP and gates sessions behind Puyuan WMS login."
+kind: "reference"
+---
 
-本文说明本仓库相对上游 DeepSeek Harness 的集成：本机 `dsh web` 调用 RuoYi `/mcp`，员工用组织 + 员工编码 + WMS 密码登录后才能建会话。不要把 `node_modules/`、`dist/`、`lib/` 提交进 git；开发机用 `pnpm install` 与 `pnpm run build` 生成它们。
+# 1TMT: dsh web ↔ RuoYi MCP and Puyuan WMS login
 
-按提交的改动说明（改了什么 / 逻辑 / 为什么）见 [1tmt-pgy-version-notes.md](./1tmt-pgy-version-notes.md)。
+English | [中文](1tmt-ruoyi-wms-integration.zh.md)
 
-## 运行时关系
+This page describes how this repository extends upstream DeepSeek Harness: local `dsh web` calls RuoYi `/mcp`, and employees must sign in with organization + staff number + WMS password before sessions can be created. Do not commit `node_modules/`, `dist/`, or `lib/`; generate them on a developer machine with `pnpm install` and `pnpm run build`.
+
+Per-commit change notes (what / how / why) live in [1tmt-pgy-version-notes.md](./1tmt-pgy-version-notes.md).
+
+## Runtime relationship
 
 ```
 业务员 PC
@@ -22,27 +29,27 @@
             管理员账号只在服务器 kde 配置里，不出现在登录页
 ```
 
-一人一进程。不要把 `dsh web` 绑到 `0.0.0.0`。业务员**只配地址、不填 Token**；地址存 `$DSH_HOME/1tmt-backend.json`，优先级：页面保存 > `DSH_1TMT_MCP_URL` / `配置.cmd` > 开发默认 `http://127.0.0.1:8081`。登录成功后，本机会话落在 `$DSH_HOME/sessions/employees/<orgId>__<staffNumber>/`；本机**第一次**成功登录会把旧的共享会话目录一次性迁入该员工树，之后其他员工互不可见。侧栏「退出登录」会清掉本进程员工身份、把会话根绑回共享根并刷新页面，随后可换员工登录（不必重启 Host）。
+One process per person. Do not bind `dsh web` to `0.0.0.0`. Operators **configure only the base URL, never a Token**; the address is stored in `$DSH_HOME/1tmt-backend.json`, with precedence: page save > `DSH_1TMT_MCP_URL` / `配置.cmd` > developer default `http://127.0.0.1:8081`. After login, local sessions live under `$DSH_HOME/sessions/employees/<orgId>__<staffNumber>/`; the **first** successful login on a machine migrates the old shared session directory into that employee tree once, after which other employees cannot see each other. Sidebar “Sign out” clears the process employee identity, rebinds the session root to the shared root, and reloads the page so another employee can sign in (Host restart not required).
 
-## 源码改动（本仓库）
+## Source changes (this repository)
 
-| 位置 | 作用 |
-|------|------|
-| `packages/api/pgy-login` | Host Remote：Base URL、会话令牌签发/销毁、动态挂载 MCP、拉组织、WMS 登录、`logout` |
-| `packages/client/ui-pgy-login` | 登录前「后端配置」、全屏登录、设置「后端 / 若依」、侧栏退出 |
-| `packages/api/session-controller` | 未登录时拒绝 create / fork / prompt / list / search（无 `pgyLogin` 服务的 profile 不拦） |
-| `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`：登录后切到员工目录 |
-| `packages/bundle/web-app/cordis.patch.yml` | 挂登录 Remote / UI；MCP 由 `pgy-login` 运行时挂载；persona 强制先调规则 MCP |
-| `desktop-1tmt/` | Electron 桌面壳：读 `配置.cmd`、后台拉起 `dsh web`、关窗时 SIGTERM 再强杀 |
-| `scripts/pack-desktop-1tmt.ts` | 部署 `dsh` + 内置 Node 到 payload，再用 electron-builder 打 NSIS 安装包 |
+| Location | Role |
+|---|---|
+| `packages/api/pgy-login` | Host Remote: Base URL, session-token issue/destroy, dynamic MCP mount, orgs, WMS login, `logout` |
+| `packages/client/ui-pgy-login` | Pre-login backend config, fullscreen login, Settings “Backend / RuoYi”, sidebar sign-out |
+| `packages/api/session-controller` | Rejects create / fork / prompt / list / search when logged out (profiles without `pgyLogin` are not gated) |
+| `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`: switch to the employee directory after login |
+| `packages/bundle/web-app/cordis.patch.yml` | Mounts login Remote / UI; MCP is mounted at runtime by `pgy-login`; persona requires rule MCP first |
+| `desktop-1tmt/` | Electron desktop shell: reads `配置.cmd`, starts `dsh web` in the background, SIGTERM then force-kill on close |
+| `scripts/pack-desktop-1tmt.ts` | Deploys `dsh` + bundled Node into payload, then electron-builder NSIS installer |
 
-MCP 公开工具名：`mcp__1tmt__pgyListOrganizations`、`mcp__1tmt__pgyWmsLogin`、`mcp__1tmt__pgyKdeEnterpriseApiRules`、`mcp__1tmt__pgyKdeExecuteBillQuery`、`mcp__1tmt__pgyListReceiveBills`。安装包用户主路径在窗口配地址；`配置.cmd` 仅 IT 预置。
+Public MCP tool names: `mcp__1tmt__pgyListOrganizations`, `mcp__1tmt__pgyWmsLogin`, `mcp__1tmt__pgyKdeEnterpriseApiRules`, `mcp__1tmt__pgyKdeExecuteBillQuery`, `mcp__1tmt__pgyListReceiveBills`. Installer users mainly set the address in the window; `配置.cmd` is an optional IT preset.
 
-查收料通知单：先 `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)`，再 `pgyListReceiveBills`（内部即标准 ExecuteBillQuery）。其他未登记单据：规则 → `pgyKdeExecuteBillQuery`。
+To query receive-bill notifications: call `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)` first, then `pgyListReceiveBills` (internally a standard ExecuteBillQuery). For other unregistered bills: rules → `pgyKdeExecuteBillQuery`.
 
-若依侧工具与 Redis 说明见 RuoYi-Vue 仓库 `docs/Harness-PGY-WMS集成.md`。MCP 令牌过滤器见该仓库 `docs/Harness连接MCP改动说明.md`。
+RuoYi-side tools and Redis notes live in the RuoYi-Vue repo under `docs/Harness-PGY-WMS集成.md`. MCP token filters: `docs/Harness连接MCP改动说明.md` in that repo.
 
-## 开发机
+## Developer machine
 
 ```text
 pnpm install
@@ -50,31 +57,31 @@ pnpm run build
 pnpm dsh --profile web
 ```
 
-不要用 `pnpm install --production` 当日常开发：会卸掉 `tsx` / `vitest`。打包脚本在 `deploy --prod` 之后会再执行一次完整 `pnpm install`。
+Do not use `pnpm install --production` for day-to-day development: it removes `tsx` / `vitest`. The pack script runs a full `pnpm install` again after `deploy --prod`.
 
-## Windows 桌面安装包
+## Windows desktop installer
 
 ```text
 pnpm run pack:desktop-1tmt
 ```
 
-产物：`dist/desktop-1tmt/installer/Harness-Setup-<版本>-x64.exe`（`dist/` 已 gitignore，不要提交安装包、payload、Node 缓存）。`-- --skip-build` 跳过全量构建，`-- --dry-run` 只打印步骤。首次打包 electron-builder 需联网下载 Electron 与 NSIS；国内网络慢时可先设 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 与 `ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/`。打包脚本会在打安装包前单独执行 `pnpm --dir desktop-1tmt install`（桌面壳不在根 workspace 里）。
+Output: `dist/desktop-1tmt/installer/Harness-Setup-<version>-x64.exe` (`dist/` is gitignored; do not commit installers, payload, or Node caches). `-- --skip-build` skips the full build; `-- --dry-run` prints steps only. The first pack needs network for Electron and NSIS; on slow networks set `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` and `ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/`. The pack script runs `pnpm --dir desktop-1tmt install` before building the installer (the desktop shell is outside the root workspace).
 
-开发时调试桌面壳：先 `pnpm --dir desktop-1tmt install`，打一次包生成 `dist/desktop-1tmt/payload`，再 `pnpm --dir desktop-1tmt start`。
+To debug the desktop shell in development: `pnpm --dir desktop-1tmt install`, pack once to create `dist/desktop-1tmt/payload`, then `pnpm --dir desktop-1tmt start`.
 
-安装与运行：
+Install and run:
 
-- 安装包按用户安装（默认 `%LOCALAPPDATA%\Programs\Harness`），无需管理员，未签名，Windows 提示未知发布者时选「仍要运行」。
-- 双击桌面「Harness」：先显示启动页，后台 `dsh web` 就绪后在同一窗口打开登录页；不弹黑窗、不开浏览器。只允许运行一个实例。
-- 用户数据与安装目录分开，固定在 `%LOCALAPPDATA%\Harness`：`配置.cmd`（IT 可选预置地址）、`data\`（会话、设置、`1tmt-backend.json`，即 `DSH_HOME`）、`logs\host.log`。升级或卸载不会动这三项。
-- 业务员主路径在窗口填写若依根地址（设置 → 后端 / 若依 可改）；关程序时尽量 `DELETE` 销毁会话令牌。
-- 后台启动失败或超时会弹窗，可直接打开配置文件或日志目录。
+- Per-user install (default `%LOCALAPPDATA%\Programs\Harness`), no admin, unsigned; choose “Run anyway” if Windows warns about an unknown publisher.
+- Double-click desktop “Harness”: splash first, then the same window opens the login page when `dsh web` is ready; no console window, no system browser. Only one instance.
+- User data is separate from the install dir, fixed at `%LOCALAPPDATA%\Harness`: `配置.cmd` (optional IT preset), `data\` (sessions, settings, `1tmt-backend.json` = `DSH_HOME`), `logs\host.log`. Upgrade/uninstall leave these alone.
+- Operators set the RuoYi root URL in the window (Settings → Backend / RuoYi can change it); on quit the Host tries to `DELETE` the session token.
+- Background start failure or timeout shows a dialog that can open the config file or log directory.
 
-从旧版（`启动.bat` / Inno 安装包）升级：旧卸载程序会删掉它装的 `配置.cmd`，先备份 `%LOCALAPPDATA%\Harness\配置.cmd`，卸载旧版后再装新版并放回该文件；`data\` 不受影响。
+Upgrading from the old layout (`启动.bat` / Inno installer): the old uninstaller removes its `配置.cmd`; back up `%LOCALAPPDATA%\Harness\配置.cmd`, uninstall the old build, install the new one, and restore that file; `data\` is untouched.
 
-## 不要提交
+## Do not commit
 
-- `node_modules/`（`pnpm install`）
-- `lib/`、`*.tsbuildinfo`（`pnpm run build`）
-- `/dist/`（payload、安装包、Node 下载缓存）
-- `.env`、真实 API Key、真实 `mcp.auth-token`
+- `node_modules/` (`pnpm install`)
+- `lib/`, `*.tsbuildinfo` (`pnpm run build`)
+- `/dist/` (payload, installer, Node download cache)
+- `.env`, real API keys, real `mcp.auth-token`

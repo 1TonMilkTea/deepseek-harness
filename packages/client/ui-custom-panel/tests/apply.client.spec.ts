@@ -1,5 +1,5 @@
 import { Context, type Fiber } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
@@ -24,6 +24,12 @@ async function bench() {
   if (ctx === undefined) throw new Error('owner did not activate')
   await ctx.plugin(SlotRegistry).await()
   ctx.provide('locale', new LocaleRuntime(ctx))
+  const tmtPanel = {
+    publishSnapshot: vi.fn(async () => ({ ok: true, value: { hash: 'x', updatedAt: 1 } })),
+    clearSnapshot: vi.fn(async () => ({ ok: true, value: undefined })),
+  }
+  ctx.provide('remote', { tmtPanel } as never)
+  ctx.provide('remote.tmtPanel', tmtPanel as never)
   const slots = ctx.get('slots') as SlotRegistry
   slots.register(
     {
@@ -48,7 +54,7 @@ describe('ui-custom-panel apply', () => {
   })
 
   it('declares services and registers the sidebar entry and main page', async () => {
-    expect(inject).toEqual(['slots', 'locale'])
+    expect(inject).toEqual(['slots', 'locale', 'remote', 'remote.tmtPanel'])
     const b = await bench()
     await b.ctx.plugin({ inject: [...inject], apply }).await()
     const main = b.slots.entries('main')[0]

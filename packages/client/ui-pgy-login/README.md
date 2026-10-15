@@ -5,6 +5,8 @@ kind: "package-reference"
 
 # @deepseek-ai/dsh-client-ui-pgy-login
 
+English | [中文](README.zh.md)
+
 ## Summary
 
 Fullscreen WMS login gate for `dsh web`. This package is a thin React Cordis host: it injects Remote `pgyLogin` callbacks into a `LoginBridge` and mounts `@deepseek-ai/dsh-1tmt-vue` `mountLogin`. Product form UI lives in the Vue package; settings BackendSection and logout remain React.

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-23-pgy-employee-session-roots.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-23-pgy-employee-session-roots.md
-2026-09-23-pgy-employee-session-roots.md: a312a11963fe649eef9432dc4ac4c102288f62cc
-2026-09-23-pgy-employee-session-roots.zh.md: a8cd9e9cc444e7a291df4c7edf8ebb6e3a003345
+/agent-note-per-employee-local-session-roots-after-wms-login:
+  en: 6460f634684c5898
+  zh: 70b5c2f4fef53c17
+/agent-note-per-employee-local-session-roots-after-wms-login/problem:
+  en: e4b5293f1ccdd175
+  zh: e3fb816e273599c8
+/agent-note-per-employee-local-session-roots-after-wms-login/decision:
+  en: 1a04ef91a652f993
+  zh: 9f9acb396cfe1a5d
+/agent-note-per-employee-local-session-roots-after-wms-login/alternatives-considered:
+  en: 6a29e93b94b9f873
+  zh: 6db6fb27123502cb
+/agent-note-per-employee-local-session-roots-after-wms-login/consequences:
+  en: 32f92f3e2f6974b5
+  zh: 8bf3cacab4935e86

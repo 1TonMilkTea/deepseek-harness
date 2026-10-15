@@ -1,0 +1,82 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/1tmt/README.md
+/:
+  en: 29de7b3179a3c77b
+  zh: 169d42f10da3c992
+/1tmt-developer-guide:
+  en: 3b70ea5c2420fbbf
+  zh: 9c80a2fcea78c659
+/1tmt-developer-guide/summary:
+  en: 91ef84f6652c68bd
+  zh: b2935db1b34c17fa
+/1tmt-developer-guide/table-of-contents:
+  en: 7f4eaf03bf481ebd
+  zh: 0333da0923513676
+/1tmt-developer-guide/how-harness-reads-context:
+  en: edef61a1d08ebb9c
+  zh: 0cd60607c0ea6e77
+/1tmt-developer-guide/how-harness-reads-context/hard-rule-model-visible-means-logged:
+  en: ee7e25967277fb70
+  zh: a201289c360e59fd
+/1tmt-developer-guide/how-harness-reads-context/when-context-enters-a-model-request:
+  en: 72e46a18cea48bcd
+  zh: ba44a041e75dbc6b
+/1tmt-developer-guide/how-harness-reads-context/why-read-the-half-panel-dom-fails:
+  en: 3b6838fc7a41739a
+  zh: cd0f39071ed5f4fd
+/1tmt-developer-guide/how-harness-reads-context/relation-to-cordis-plugins:
+  en: d9fdf023fdb7ef75
+  zh: 177be4570122fbd4
+/1tmt-developer-guide/these-plugins-purpose-and-design:
+  en: 68f3e2f395ea2080
+  zh: 96edb5ebdfdb160a
+/1tmt-developer-guide/these-plugins-purpose-and-design/purpose:
+  en: 8244421b85727aa4
+  zh: d0d885a25cb85815
+/1tmt-developer-guide/these-plugins-purpose-and-design/two-host-plugin-rows-the-existing-client-shell:
+  en: b70d555d89af971f
+  zh: 6ec0d2c2c9e7c533
+/1tmt-developer-guide/these-plugins-purpose-and-design/end-to-end-data-path:
+  en: 3a233cb0999b6656
+  zh: ace6445d37b20e1a
+/1tmt-developer-guide/these-plugins-purpose-and-design/mount-and-disable:
+  en: 49c133a1ce384305
+  zh: 3eb1b3d4111a96c9
+/1tmt-developer-guide/these-plugins-purpose-and-design/how-product-pages-publish-developer-contract:
+  en: 4dea3099c3bb34f9
+  zh: cd70fdd3d4b22afb
+/1tmt-developer-guide/these-plugins-purpose-and-design/current-limitations-package-readmes-own-detail:
+  en: 893bb79f5a3f7a70
+  zh: dd9127d42c8f932b
+/1tmt-developer-guide/these-plugins-purpose-and-design/do-not:
+  en: 4b111318378dd896
+  zh: 1676fafe7066d793
+/1tmt-developer-guide/boundaries-change-do-not-change:
+  en: 4575b9d2bb34794f
+  zh: 520d094ffa161477
+/1tmt-developer-guide/directory-map:
+  en: 03e8fef1d20ffc50
+  zh: 26e725bd074745d1
+/1tmt-developer-guide/day-to-day-workflow:
+  en: d86fc63869afa047
+  zh: 039ccfd4e1119d5b
+/1tmt-developer-guide/edit-the-login-page:
+  en: 3e822287d77ebad6
+  zh: 77ea132db9be0c1e
+/1tmt-developer-guide/edit-the-custom-half-panel:
+  en: b0c93939ee5f0823
+  zh: d474527f0d6d4221
+/1tmt-developer-guide/give-vue-host-capabilities-bridge:
+  en: 5a6bbe3af8990dcb
+  zh: 6c55078d37af820a
+/1tmt-developer-guide/copy-and-locales:
+  en: 809a378c8e97f3df
+  zh: 66b602634de0df65
+/1tmt-developer-guide/acceptance-checklist:
+  en: fcd7f11210a59b14
+  zh: bc8769008ce57207
+/1tmt-developer-guide/related-links:
+  en: 51a0d7f91c5362c6
+  zh: 03c042dcfa0ae05e
