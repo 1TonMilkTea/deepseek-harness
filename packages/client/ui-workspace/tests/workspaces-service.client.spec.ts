@@ -287,11 +287,12 @@ function bench(options: BenchOptions = {}) {
   ctx.provide('locale', locale)
   const requestDraftInitialization = vi.fn<SessionInputResolver['requestDraftInitialization']>(() => 'applied')
   if (options.conversation !== false) ctx.provide('conversation', { input: { requestDraftInitialization } })
+  const panelInfo = createSnapshotStore<{ activePanelId: MainPanelId | null }>({ activePanelId: null })
   const layout = new LayoutController({
     selectPanel: vi.fn(), retainMainPanels: vi.fn(),
     setSidebar: vi.fn(), toggleSidebar: vi.fn(), setViewportWidth: vi.fn(),
     setRightbar: vi.fn(), openRightbar: vi.fn(), closeRightbar: vi.fn(),
-  }, () => true, createSnapshotStore({ activePanelId: null }))
+  }, () => true, panelInfo)
   const selectPanel = vi.spyOn(layout, 'selectPanel')
   ctx.provide('layout', layout)
   ctx.effect(() => () => { layout.dispose() })
@@ -310,7 +311,10 @@ function bench(options: BenchOptions = {}) {
     view.actions,
     notify,
   )
-  return { ctx, directoryPicker, sessions, uiWorkspace, workspaces, layout, selectPanel, view, notify, requestDraftInitialization }
+  return {
+    ctx, directoryPicker, sessions, uiWorkspace, workspaces, layout, panelInfo,
+    selectPanel, view, notify, requestDraftInitialization,
+  }
 }
 
 function lastOpening(open: MockInstance<UiWorkspaceService['openWorkspace']>): Promise<void> {
@@ -435,21 +439,21 @@ describe('UiWorkspaceService', () => {
       workspaces: workspaceState([workspace('a')]),
       sessions: sessionState([], 'pending'),
     })
-    b.layout.panelInfo.set({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
+    b.panelInfo.set({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
     b.selectPanel.mockClear()
     await b.uiWorkspace.openWorkspace(wid('a'))
     expect(b.selectPanel).not.toHaveBeenCalled()
-    expect(b.layout.panelInfo.getSnapshot()).toEqual({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
+    expect(b.panelInfo.getSnapshot()).toEqual({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
     expect(b.sessions.retain).toHaveBeenCalledWith(sid('created-a'), { source: 'mainView' })
   })
 
   it('keeps a conversation-split panel when opening a Session', () => {
     const b = bench()
-    b.layout.panelInfo.set({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
+    b.panelInfo.set({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
     b.selectPanel.mockClear()
     b.uiWorkspace.openSession(sid('target'))
     expect(b.selectPanel).not.toHaveBeenCalled()
-    expect(b.layout.panelInfo.getSnapshot()).toEqual({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
+    expect(b.panelInfo.getSnapshot()).toEqual({ activePanelId: SPLIT_WITH_CONVERSATION_PANEL_ID })
   })
 
   it('keeps the current panel when retaining the target fails', () => {
