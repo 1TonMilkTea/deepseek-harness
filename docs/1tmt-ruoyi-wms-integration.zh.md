@@ -36,6 +36,7 @@ kind: "reference"
 | 位置 | 作用 |
 |---|---|
 | `packages/api/pgy-login` | Host Remote：Base URL、会话令牌签发/销毁、动态挂载 MCP、拉组织、WMS 登录、`logout` |
+| `packages/api/pgy-pur-receive` | Host Remote：采购入库（列表/View/条码/仓位/提交），仅 `tools.execute` → 若依 MCP，不直连金蝶 |
 | `packages/client/ui-pgy-login` | 登录前「后端配置」、全屏登录、设置「后端 / 若依」、侧栏退出 |
 | `packages/api/session-controller` | 未登录时拒绝 create / fork / prompt / list / search（无 `pgyLogin` 服务的 profile 不拦） |
 | `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`：登录后切到员工目录 |
@@ -43,9 +44,9 @@ kind: "reference"
 | `desktop-1tmt/` | Electron 桌面壳：读 `配置.cmd`、后台拉起 `dsh web`、关窗时 SIGTERM 再强杀 |
 | `scripts/pack-desktop-1tmt.ts` | 部署 `dsh` + 内置 Node 到 payload，再用 electron-builder 打 NSIS 安装包 |
 
-MCP 公开工具名：`mcp__1tmt__pgyListOrganizations`、`mcp__1tmt__pgyWmsLogin`、`mcp__1tmt__pgyKdeEnterpriseApiRules`、`mcp__1tmt__pgyKdeExecuteBillQuery`、`mcp__1tmt__pgyListReceiveBills`。安装包用户主路径在窗口配地址；`配置.cmd` 仅 IT 预置。
+MCP 公开工具名：`mcp__1tmt__pgyListOrganizations`、`mcp__1tmt__pgyWmsLogin`、`mcp__1tmt__pgyKdeEnterpriseApiRules`、`mcp__1tmt__pgyKdeExecuteBillQuery`、`mcp__1tmt__pgyListReceiveBills`、`mcp__1tmt__pgyKdeViewBill`、`mcp__1tmt__pgyGetPurReceiveEntityOutputs`、`mcp__1tmt__pgyGetBarcodeByNumber`、`mcp__1tmt__pgyGetStockInfoByNumber`、`mcp__1tmt__pgySubmitStkInStockRecordReport`。安装包用户主路径在窗口配地址；`配置.cmd` 仅 IT 预置。
 
-查收料通知单：先 `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)`，再 `pgyListReceiveBills`（内部即标准 ExecuteBillQuery）。其他未登记单据：规则 → `pgyKdeExecuteBillQuery`。
+查收料通知单：先 `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)`，再 `pgyListReceiveBills`（内部即标准 ExecuteBillQuery）。其他未登记单据：规则 → `pgyKdeExecuteBillQuery`。采购入库 Web：自定义工作台内「采购管理 → 采购入库」，经 `pgyPurReceive` Remote 调上述 MCP（Harness 禁止直连金蝶）。
 
 若依侧工具与 Redis 说明见 RuoYi-Vue 仓库 `docs/Harness-PGY-WMS集成.md`。MCP 令牌过滤器见该仓库 `docs/Harness连接MCP改动说明.md`。
 

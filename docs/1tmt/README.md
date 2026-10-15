@@ -376,13 +376,13 @@ Settings “backend / RuoYi” and sidebar sign-out stay in `ui-pgy-login` React
 <a id="edit-the-custom-workbench"></a>
 ## Edit the Custom Workbench
 
-1. Put business UI in `packages/1tmt/vue/src/apps/custom-workbench/App.vue` (and CSS beside it).
-2. The sidebar Custom Workbench entry opens AppFrame with this page on the left and native Conversation on the right (panel id = `custom-workbench`; see [how it works](#custom-workbench-overview)).
+1. Put business UI in `packages/1tmt/vue/src/apps/custom-workbench/` (`App.vue`, `stk-input.ts`, CSS). **Add new modules only in the workbench left menu**; do not register more `sidebar.panellist` entries.
+2. The sidebar keeps a single 1tmt business entry, Custom Workbench; AppFrame splits left/right (panel id = `custom-workbench`; see [how it works](#custom-workbench-overview)). Purchase → Purchase inbound lives inside the workbench.
 3. Sidebar label/icon: `packages/client/ui-custom-workbench/src/client/locales.ts`, `CustomWorkbenchIcon.tsx`.
-4. For Host / Remote / session access: extend `CustomWorkbenchBridge`; `CustomWorkbenchPage.tsx` injects from `ctx` (`publishSnapshot` / `clearSnapshot` already exist).
-5. Call `bridge.publishSnapshot(...)` after list/form changes so the next pre-step can see them (see “Workbench snapshot plugins” above).
+4. Host capabilities via Bridge: `publishSnapshot` / `clearSnapshot` (`tmtWorkbench`) and purchase-inbound `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport` (`pgyPurReceive`, MCP only).
+5. Call `bridge.publishSnapshot(...)` after list/bill changes so the next pre-step can see them (see “Workbench snapshot plugins” above).
 
-The placeholder publishes a demo list on mount and shows `published hash=…` for end-to-end checks. The “Republish demo list” button publishes the same data again to verify that an unchanged hash is not injected twice.
+Purchase-inbound path: list receive bills → open detail (View + entity outputs) → enter stock code / barcode manually → confirm inbound synchronously (no PDA queue, no developer mode). DTO assembly lives in Vue `stk-input.ts`.
 
 -----
 
@@ -408,7 +408,7 @@ Vue **must not** touch `ctx`. The path is:
 | Copy | File |
 |---|---|
 | Login labels (passed into Vue) | `packages/client/ui-pgy-login/src/client/locales.ts` |
-| Workbench title/intro, sidebar Custom Workbench, republish | `packages/client/ui-custom-workbench/src/client/locales.ts` (namespace `customWorkbench`) |
+| Workbench title, sidebar Custom Workbench, purchase-inbound copy | `packages/client/ui-custom-workbench/src/client/locales.ts` (namespace `customWorkbench`) |
 
 Vue reads `bridge.labels` only; do not hard-code product copy in `.vue` files.
 
@@ -421,8 +421,9 @@ Vue reads `bridge.labels` only; do not hard-code product copy in `.vue` files.
 - [ ] `ui-pgy-login` / `ui-custom-workbench` host `bundle` succeeds
 - [ ] Host has `packages/1tmt/workbench/lib/typert.remote-client.js` (Remote generated)
 - [ ] `dsh web`: fullscreen employee login is Element Plus (DevTools: `.el-card` / `style#dsh-1tmt-element-plus`)
-- [ ] After login, Custom Workbench opens left Vue + right native chat; the workbench shows `published hash=…`
-- [ ] Asking “turn the current list into JSON” in chat references the demo list (`1tmt-workbench-context` mounted)
+- [ ] After login, Custom Workbench opens left Vue (Purchase → Purchase inbound) + right native chat; list queries call `publishSnapshot`
+- [ ] Purchase inbound: search → open → enter barcode → confirm inbound (needs RuoYi MCP + Kingdee)
+- [ ] Asking about the current list in chat can reference the workbench snapshot (`1tmt-workbench-context` mounted)
 - [ ] With `1tmt-workbench-context` `disabled: true`: the workbench remains, new turns no longer auto-include the snapshot summary
 - [ ] Settings → built-in plugins lists `1tmt-workbench`, `1tmt-workbench-context`, and `ui-custom-workbench` as active
 - [ ] Settings → DeepSeek account entry stays native Harness (not the Element Plus employee login)

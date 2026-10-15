@@ -376,13 +376,13 @@ pnpm exec vitest run packages/client/ui-custom-workbench/tests
 <a id="edit-the-custom-workbench"></a>
 ## 改自定义工作台
 
-1. 业务 UI 写在 `packages/1tmt/vue/src/apps/custom-workbench/App.vue`（及同目录 CSS）。
-2. 侧栏点「自定义工作台」后，AppFrame 左侧挂该页、右侧仍是原生 Conversation（面板 id = `custom-workbench`，原理见 [原理总览](#custom-workbench-overview)）。
+1. 业务 UI 写在 `packages/1tmt/vue/src/apps/custom-workbench/`（`App.vue`、`stk-input.ts`、CSS）。**新业务模块只加工作台内左侧菜单**，不要再注册 `sidebar.panellist`。
+2. 侧栏只保留「自定义工作台」一个 1tmt 业务入口；点开后 AppFrame 左右分屏（面板 id = `custom-workbench`，原理见 [原理总览](#custom-workbench-overview)）。采购管理 → 采购入库在工作台内部。
 3. 侧栏入口文案/图标：`packages/client/ui-custom-workbench/src/client/locales.ts`、`CustomWorkbenchIcon.tsx`。
-4. 需要调 Host / Remote / 会话时：扩展 `CustomWorkbenchBridge`，由 `CustomWorkbenchPage.tsx` 从 `ctx` 注入（已有 `publishSnapshot` / `clearSnapshot`）。
-5. 列表或表单变化后调用 `bridge.publishSnapshot(...)`，对话侧才会在下一轮 pre-step 读到（原理见上文「工作台快照插件」）。
+4. Host 能力经 Bridge：`publishSnapshot` / `clearSnapshot`（`tmtWorkbench`）以及采购入库 `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport`（`pgyPurReceive`，仅 MCP）。
+5. 列表或单据变化后调用 `bridge.publishSnapshot(...)`，对话侧才会在下一轮 pre-step 读到（原理见上文「工作台快照插件」）。
 
-占位页挂载时会发布演示列表并显示 `published hash=…`，便于联调「对话是否读到工作台」。「重新发布演示列表」按钮再次发布同一份数据，用于验证同 hash 不重复注入。
+采购入库路径：查收料列表 → 打开详情（View + 明细扩展）→ 手工录仓位码/条码 → 确认入库同步提交（无 PDA 队列、无开发者模式）。DTO 在 Vue `stk-input.ts` 拼装。
 
 -----
 
@@ -408,7 +408,7 @@ Vue **不能**直接碰 `ctx`。正确路径：
 | 文案位置 | 文件 |
 |---|---|
 | 登录 labels（传给 Vue） | `packages/client/ui-pgy-login/src/client/locales.ts` |
-| 工作台标题/说明、侧栏「自定义工作台」、重新发布 | `packages/client/ui-custom-workbench/src/client/locales.ts`（命名空间 `customWorkbench`） |
+| 工作台标题、侧栏「自定义工作台」、采购入库页文案 | `packages/client/ui-custom-workbench/src/client/locales.ts`（命名空间 `customWorkbench`） |
 
 Vue 侧只读 `bridge.labels`，不要在 `.vue` 里硬编码产品文案。
 
@@ -421,7 +421,8 @@ Vue 侧只读 `bridge.labels`，不要在 `.vue` 里硬编码产品文案。
 - [ ] `ui-pgy-login` / `ui-custom-workbench` 两个 host `bundle` 成功
 - [ ] Host 侧存在 `packages/1tmt/workbench/lib/typert.remote-client.js`（Remote 已生成）
 - [ ] `dsh web`：全屏员工登录为 Element Plus（可用 DevTools 看 `.el-card` / `style#dsh-1tmt-element-plus`）
-- [ ] 登录后点「自定义工作台」：左 Vue、右原生对话；工作台显示 `published hash=…`
+- [ ] 登录后点「自定义工作台」：左 Vue（含采购管理 → 采购入库）、右原生对话；列表查询会 `publishSnapshot`
+- [ ] 采购入库：查单 → 打开 → 录条码 → 确认入库（需若依 MCP + 金蝶联调环境）
 - [ ] 在右侧对话提问「把现在列表整理成 JSON」：模型能引用演示列表（需 `1tmt-workbench-context` 已挂载）
 - [ ] 将 `1tmt-workbench-context` 设为 `disabled: true` 后：工作台仍在，但新对话不再自动带上快照摘要
 - [ ] 设置 → 内置插件中能看到 `1tmt-workbench`、`1tmt-workbench-context`、`ui-custom-workbench` 三行且为 active

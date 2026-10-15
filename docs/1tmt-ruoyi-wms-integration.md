@@ -36,6 +36,7 @@ One process per person. Do not bind `dsh web` to `0.0.0.0`. Operators **configur
 | Location | Role |
 |---|---|
 | `packages/api/pgy-login` | Host Remote: Base URL, session-token issue/destroy, dynamic MCP mount, orgs, WMS login, `logout` |
+| `packages/api/pgy-pur-receive` | Host Remote: purchase inbound (list/view/barcode/stock/submit) via RuoYi MCP only; never Kingdee direct |
 | `packages/client/ui-pgy-login` | Pre-login backend config, fullscreen login, Settings “Backend / RuoYi”, sidebar sign-out |
 | `packages/api/session-controller` | Rejects create / fork / prompt / list / search when logged out (profiles without `pgyLogin` are not gated) |
 | `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`: switch to the employee directory after login |
@@ -43,9 +44,9 @@ One process per person. Do not bind `dsh web` to `0.0.0.0`. Operators **configur
 | `desktop-1tmt/` | Electron desktop shell: reads `配置.cmd`, starts `dsh web` in the background, SIGTERM then force-kill on close |
 | `scripts/pack-desktop-1tmt.ts` | Deploys `dsh` + bundled Node into payload, then electron-builder NSIS installer |
 
-Public MCP tool names: `mcp__1tmt__pgyListOrganizations`, `mcp__1tmt__pgyWmsLogin`, `mcp__1tmt__pgyKdeEnterpriseApiRules`, `mcp__1tmt__pgyKdeExecuteBillQuery`, `mcp__1tmt__pgyListReceiveBills`. Installer users mainly set the address in the window; `配置.cmd` is an optional IT preset.
+Public MCP tool names: `mcp__1tmt__pgyListOrganizations`, `mcp__1tmt__pgyWmsLogin`, `mcp__1tmt__pgyKdeEnterpriseApiRules`, `mcp__1tmt__pgyKdeExecuteBillQuery`, `mcp__1tmt__pgyListReceiveBills`, `mcp__1tmt__pgyKdeViewBill`, `mcp__1tmt__pgyGetPurReceiveEntityOutputs`, `mcp__1tmt__pgyGetBarcodeByNumber`, `mcp__1tmt__pgyGetStockInfoByNumber`, `mcp__1tmt__pgySubmitStkInStockRecordReport`. Installer users mainly set the address in the window; `配置.cmd` is an optional IT preset.
 
-To query receive-bill notifications: call `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)` first, then `pgyListReceiveBills` (internally a standard ExecuteBillQuery). For other unregistered bills: rules → `pgyKdeExecuteBillQuery`.
+To query receive-bill notifications: call `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)` first, then `pgyListReceiveBills` (internally a standard ExecuteBillQuery). For other unregistered bills: rules → `pgyKdeExecuteBillQuery`. Purchase inbound Web lives under Custom Workbench → Purchase → Purchase inbound, through the `pgyPurReceive` Remote (Harness must not call Kingdee directly).
 
 RuoYi-side tools and Redis notes live in the RuoYi-Vue repo under `docs/Harness-PGY-WMS集成.md`. MCP token filters: `docs/Harness连接MCP改动说明.md` in that repo.
 
