@@ -20,10 +20,10 @@ import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type { MainPanelId } from '@deepseek-ai/dsh-client-ui-layout/client'
 
 /**
- * Same id as `SPLIT_WITH_CONVERSATION_PANEL_ID` in ui-layout / ui-custom-panel.
+ * Same id as `SPLIT_WITH_CONVERSATION_PANEL_ID` in ui-layout / ui-custom-workbench.
  * Kept as a local literal so the Client bundle does not value-import ui-layout.
  */
-const CONVERSATION_SPLIT_PANEL_ID = 'custom' as MainPanelId
+const CONVERSATION_SPLIT_PANEL_ID = 'custom-workbench' as MainPanelId
 import type { DraftInitializationOptions } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { RowToast } from './contract/slots.ts'
 import { pinOrderAccounts, pinOrderSource } from './pin-order.ts'
@@ -438,7 +438,7 @@ class UiWorkspaceService extends Service implements UiWorkspace {
     const previous = this.mainReference
     this.mainReference = reference
     previous?.release()
-    // Leave conversation-split panels (custom + Conversation) mounted: the
+    // Leave conversation-split panels (custom workbench + Conversation) mounted: the
     // Conversation is already visible, so revealing it must not dismiss the
     // companion pane. Full-takeover panels (Plugins, …) still clear to Conversation.
     if (panel === 'reveal'

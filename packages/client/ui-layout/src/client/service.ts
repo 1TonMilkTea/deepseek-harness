@@ -17,10 +17,10 @@ export type MainPanelId = Branded<'MainPanelId'>
 
 /**
  * Main panel that keeps the Conversation mounted beside the panel (≈50/50).
- * Owned by `@deepseek-ai/dsh-client-ui-custom-panel`; AppFrame dual-renders
- * this key with `conversation` when it is the active panel.
+ * Owned by the custom workbench plugin `@deepseek-ai/dsh-client-ui-custom-workbench`;
+ * AppFrame dual-renders this key with `conversation` when it is the active panel.
  */
-export const SPLIT_WITH_CONVERSATION_PANEL_ID = 'custom' as MainPanelId
+export const SPLIT_WITH_CONVERSATION_PANEL_ID = 'custom-workbench' as MainPanelId
 
 /** Root-scoped navigation state exposed to panel-aware components. */
 export interface PanelInfo {

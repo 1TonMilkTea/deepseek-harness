@@ -1,6 +1,6 @@
 import elementPlusCss from 'element-plus/dist/index.css?inline'
 import loginCss from './apps/login/app.css?inline'
-import customPanelCss from './apps/custom-panel/app.css?inline'
+import customWorkbenchCss from './apps/custom-workbench/app.css?inline'
 
 /**
  * Inject a stylesheet once per document id.
@@ -21,8 +21,8 @@ export function ensureLoginStyles(): void {
   ensureStyle('dsh-1tmt-login', loginCss)
 }
 
-/** Install Element Plus + custom-panel island CSS. */
-export function ensureCustomPanelStyles(): void {
+/** Install Element Plus + custom-workbench island CSS. */
+export function ensureCustomWorkbenchStyles(): void {
   ensureStyle('dsh-1tmt-element-plus', elementPlusCss)
-  ensureStyle('dsh-1tmt-custom-panel', customPanelCss)
+  ensureStyle('dsh-1tmt-custom-workbench', customWorkbenchCss)
 }

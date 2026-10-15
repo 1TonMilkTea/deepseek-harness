@@ -54,31 +54,31 @@ export interface LoginBridge {
   onLoggedIn(): void
 }
 
-/** Localized copy for the custom half-panel placeholder. */
-export interface CustomLabels {
+/** Localized copy for the custom workbench placeholder. */
+export interface CustomWorkbenchLabels {
   readonly title: string
   readonly intro: string
   readonly republish: string
 }
 
 /** JSON-scalar cell used in list rows and form fields. */
-export type CustomPanelPrimitive = string | number | boolean | null
+export type CustomWorkbenchPrimitive = string | number | boolean | null
 
 /** One flat row or form field map published to the Host snapshot store. */
-export type CustomPanelRow = Readonly<Record<string, CustomPanelPrimitive>>
+export type CustomWorkbenchRow = Readonly<Record<string, CustomWorkbenchPrimitive>>
 
 /** Structured view the Vue island publishes for model-visible context. */
-export interface CustomPanelSnapshot {
+export interface CustomWorkbenchSnapshot {
   readonly kind: 'empty' | 'list' | 'form'
   readonly title: string
-  readonly rows: readonly CustomPanelRow[]
-  readonly form?: CustomPanelRow
+  readonly rows: readonly CustomWorkbenchRow[]
+  readonly form?: CustomWorkbenchRow
 }
 
 /** Callbacks the React shell injects; Vue never reaches Cordis. */
-export interface CustomBridge {
-  readonly labels: CustomLabels
-  publishSnapshot(snapshot: CustomPanelSnapshot): Promise<BridgeResult<{ readonly hash: string; readonly updatedAt: number }>>
+export interface CustomWorkbenchBridge {
+  readonly labels: CustomWorkbenchLabels
+  publishSnapshot(snapshot: CustomWorkbenchSnapshot): Promise<BridgeResult<{ readonly hash: string; readonly updatedAt: number }>>
   clearSnapshot(): Promise<BridgeResult<void>>
 }
 
@@ -99,14 +99,14 @@ export declare function mountLogin(el: HTMLElement, bridge: LoginBridge): void
 export declare function unmountLogin(el: HTMLElement): void
 
 /**
- * Mount the custom half-panel into `el`.
+ * Mount the custom workbench into `el`.
  * @param el - host element owned by the React main panel
  * @param bridge - localized labels and snapshot publish callbacks
  */
-export declare function mountCustomPanel(el: HTMLElement, bridge: CustomBridge): void
+export declare function mountCustomWorkbench(el: HTMLElement, bridge: CustomWorkbenchBridge): void
 
 /**
- * Tear down a custom-panel island previously mounted on `el`.
+ * Tear down a custom-workbench island previously mounted on `el`.
  * @param el - host element
  */
-export declare function unmountCustomPanel(el: HTMLElement): void
+export declare function unmountCustomWorkbench(el: HTMLElement): void

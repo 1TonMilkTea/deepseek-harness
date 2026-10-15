@@ -1,7 +1,7 @@
 export type {
   BridgeResult,
-  CustomBridge,
-  CustomLabels,
+  CustomWorkbenchBridge,
+  CustomWorkbenchLabels,
   LoginBackendConfig,
   LoginBridge,
   LoginLabels,
@@ -9,8 +9,8 @@ export type {
 } from './bridge.js'
 export { BRIDGE_KEY } from './bridge.js'
 export {
-  mountCustomPanel,
+  mountCustomWorkbench,
   mountLogin,
-  unmountCustomPanel,
+  unmountCustomWorkbench,
   unmountLogin,
 } from './mount.js'

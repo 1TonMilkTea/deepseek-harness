@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-1tmt-vue",
-  "description": "Vue 3 + Element Plus islands for 1tmt login and custom panel UI",
+  "description": "Vue 3 + Element Plus islands for 1tmt login and custom workbench UI",
   "version": "0.1.0",
   "private": true,
   "repository": {

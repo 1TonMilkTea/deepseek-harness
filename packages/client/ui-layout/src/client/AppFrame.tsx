@@ -43,7 +43,7 @@ function MainPanel({ usePanelInfo, renderSlot }: Pick<PropsRuntime<'root'>, 'use
   if (panelId === SPLIT_WITH_CONVERSATION_PANEL_ID) {
     return (
       <div className={css.splitMain} data-main-split>
-        <div className={css.splitPane} data-main-split-pane="custom">
+        <div className={css.splitPane} data-main-split-pane="custom-workbench">
           {renderSlot('main', {}, { entryKey: SPLIT_WITH_CONVERSATION_PANEL_ID })}
         </div>
         <div className={css.splitPane} data-main-split-pane="conversation">

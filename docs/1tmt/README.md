@@ -1,5 +1,5 @@
 ---
-description: "1tmt developer guide: Harness context-reading rules, custom-panel snapshot plugins, Vue islands, and acceptance checks."
+description: "1tmt developer guide: how the Custom Workbench works, Harness context-reading rules, workbench snapshot plugins, Vue islands, and acceptance checks."
 kind: "reference"
 ---
 
@@ -9,21 +9,86 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This page is for developers extending Harness on the 1tmt product line. It first explains **how Harness delivers context to the model** (hard rules and extension points), then explains the **custom-panel snapshot plugins** shipped in this work (purpose, split, data path), and finally covers day-to-day edits for the product UI (login / custom half-panel) and acceptance checks. 1tmt owns only two UI surfaces: the fullscreen WMS employee login and the left half-panel opened from the sidebar Custom entry. Both are Vue 3 + Element Plus islands under `packages/1tmt/vue`; the right-hand conversation and DeepSeek account login stay native Harness React.
+This page is for developers extending Harness on the 1tmt product line. It first explains what the **Custom Workbench** is, which plugins compose it, and how it works beside the conversation; then **how Harness delivers context to the model** (hard rules and extension points) and the purpose and data path of the **workbench snapshot plugins**; finally it covers day-to-day edits for the product UI (employee login / Custom Workbench) and acceptance checks. 1tmt owns only two UI surfaces: the fullscreen WMS employee login and the left business area opened from the sidebar Custom Workbench entry. Both are Vue 3 + Element Plus islands under `packages/1tmt/vue`; the right-hand conversation and DeepSeek account login stay native Harness React.
 
 ## Table of Contents
 
+- [Custom Workbench: how it works](#custom-workbench-overview)
 - [How Harness reads context](#how-harness-reads-context)
-- [These plugins: purpose and design](#these-plugins-purpose-and-design)
+- [Workbench snapshot plugins: purpose and design](#workbench-snapshot-plugins-purpose-and-design)
 - [Boundaries: change / do not change](#boundaries-change--do-not-change)
 - [Directory map](#directory-map)
 - [Day-to-day workflow](#day-to-day-workflow)
 - [Edit the login page](#edit-the-login-page)
-- [Edit the custom half-panel](#edit-the-custom-half-panel)
+- [Edit the Custom Workbench](#edit-the-custom-workbench)
 - [Give Vue Host capabilities (Bridge)](#give-vue-host-capabilities-bridge)
 - [Copy and locales](#copy-and-locales)
 - [Acceptance checklist](#acceptance-checklist)
 - [Related links](#related-links)
+
+-----
+
+<a id="custom-workbench-overview"></a>
+## Custom Workbench: how it works
+
+The **Custom Workbench** is a sidebar entry. Opening it splits the main area: the left side is the 1tmt Vue business UI (lists, bill forms, and so on), and the right side is the native Harness conversation. The structured data currently shown on the left is published to the Host, and the conversation includes it automatically before the next model request, so the user can simply ask the right side to "tidy up the list on the left".
+
+### Composition: four parts, one job each
+
+| Part | Package / Loader row id | Runs in | Responsibility |
+|---|---|---|---|
+| Entry and shell | `@deepseek-ai/dsh-client-ui-custom-workbench` / `ui-custom-workbench` | Browser | Registers the sidebar entry and the main-area page; mounts the Vue island on the left; assembles Remote callbacks into `CustomWorkbenchBridge` |
+| Business UI | `@deepseek-ai/dsh-1tmt-vue` (not a Loader row; inlined into the shell bundle) | Browser | Vue 3 + Element Plus page; calls `bridge.publishSnapshot` when data changes |
+| Snapshot store | `@deepseek-ai/dsh-1tmt-workbench` / `1tmt-workbench` | Host | Typert Remote `tmtWorkbench`: keeps the latest snapshot in the Host process and computes its hash |
+| Conversation injection | `@deepseek-ai/dsh-1tmt-workbench-context` / `1tmt-workbench-context` | Host | `agent/pre-step` listener: appends a sourced `user/message` to the Session when the snapshot changes |
+
+The first two decide what the user sees; the last two decide what the conversation can read. They interact only through the Bridge and the Remote, so each can be disabled separately (see the switch matrix below).
+
+### From the sidebar click to the split view
+
+```mermaid
+flowchart TB
+  entry["Sidebar entry (sidebar.panellist, id custom-workbench)"]
+  select["layout.selectPanel('custom-workbench')"]
+  frame["AppFrame: activePanelId === SPLIT_WITH_CONVERSATION_PANEL_ID"]
+  left["Left pane: main slot entryKey custom-workbench → CustomWorkbenchPage"]
+  right["Right pane: main slot entryKey conversation → native Conversation"]
+  vue["mountCustomWorkbench(el, bridge) → Vue + Element Plus"]
+
+  entry --> select --> frame
+  frame --> left --> vue
+  frame --> right
+```
+
+1. **Registration**: in its browser `apply`, `ui-custom-workbench` calls `ctx.slots.register` twice: once into `sidebar.panellist` (icon and the "Custom Workbench" label), and once into the `main` slot under the panel id `custom-workbench` (page component `CustomWorkbenchPage`). Both registrations are effects, so disposing the plugin removes them and the entry disappears.
+2. **Selection**: clicking the sidebar entry makes `ui-sidebar` call `ctx.layout.selectPanel('custom-workbench')`, which sets `activePanelId` in the root layout store.
+3. **Split**: `ui-layout`'s `AppFrame` sees that `activePanelId` equals `SPLIT_WITH_CONVERSATION_PANEL_ID` (value `custom-workbench`) and renders two `main` slots at once: `custom-workbench` on the left, `conversation` on the right, roughly half each. Other main panels (plugin page, settings-like pages) still replace the conversation entirely.
+4. **Switching conversations keeps the split**: when `ui-workspace` navigation reveals a conversation while the Custom Workbench split is active, it keeps the split and swaps only the right-hand conversation; other full-takeover panels return to the plain conversation.
+5. **Mounting Vue**: `CustomWorkbenchPage` renders an empty host `div` and calls `mountCustomWorkbench(el, bridge)` from `@deepseek-ai/dsh-1tmt-vue` in a `useEffect`. The Vue app receives the Bridge through `provide('1tmtBridge', bridge)` and installs Element Plus; Element Plus and workbench styles are injected once as `<style id="dsh-1tmt-element-plus">` / `<style id="dsh-1tmt-custom-workbench">`. Leaving the workbench unmounts the React component, and `unmountCustomWorkbench(el)` destroys the Vue app and clears the host node.
+
+Vue never touches the Cordis `ctx`: the Bridge alone defines what it can do (`labels` copy, `publishSnapshot`, `clearSnapshot`). The shell's `inject` turns `ctx.remote.tmtWorkbench` methods into Bridge callbacks and folds Remote failures into `{ ok: false, error: { message } }` for Vue.
+
+### Lifecycle
+
+| When | What happens |
+|---|---|
+| Open the Custom Workbench | Vue mounts; the placeholder immediately publishes a demo list with `publishSnapshot` and shows `published hash=…` |
+| Left-side data changes | The business page publishes again; the Host replaces the old snapshot and the hash follows the content |
+| The right side sends the next message | `workbench-context` compares hashes on pre-step and appends a `user/message` only when the hash differs from this Session's last injection |
+| Leave the Custom Workbench | Vue calls `clearSnapshot()` on unmount; the Host clears the snapshot and later steps inject nothing |
+| Host restarts | The snapshot lives only in memory and is lost; injection messages already in the Session stay in the log |
+
+### Switch matrix: what disabling each row does
+
+Add `disabled: true` to the row in `packages/bundle/web-app/cordis.patch.yml` and restart `dsh web`:
+
+| Disabled row | Sidebar entry / left UI | Does the conversation read workbench data? |
+|---|---|---|
+| `ui-custom-workbench` | Gone (slot registrations are disposed with the plugin) | No; no page publishes snapshots |
+| `1tmt-workbench-context` | Works | No; the Host still stores the snapshot, but no listener writes it into the Session |
+| `1tmt-workbench` | Still shown; the browser `remote.tmtWorkbench` is mounted from generated descriptors, but the Host has no matching methods and the page shows `publish failed: …` | No; `workbench-context` also stays pending without the `tmtWorkbench` service |
+
+To keep the UI while hiding it from the model, disable only `1tmt-workbench-context`.
 
 -----
 
@@ -38,7 +103,7 @@ The most common mistake when building product UI is assuming the model can see t
 |---|---|
 | Model-visible means logged | Every model request must be reconstructable from the Session log; a new model-visible input requires a Session event |
 | The Session log is the source of truth | `deriveMessages()` projects model history from the log; UI, Remotes, and tool results must land in durable events |
-| The browser is not the model's eyes | Left-pane lists, forms, and DOM text that never reach the Host and log stay invisible to the conversation model |
+| The browser is not the model's eyes | Lists, forms, and DOM text in the Custom Workbench that never reach the Host and log stay invisible to the conversation model |
 
 Authoritative wording lives in [`docs/architecture.md`](../architecture.md) (Session log / Model-visible means logged). A parallel sample is [`packages/context/time-context`](../../packages/context/time-context/README.md), which appends a sourced `user/message` on `agent/pre-step`.
 
@@ -65,56 +130,56 @@ For “add business context for the model”, the main extension points are:
 
 Injected user-side messages usually carry a **`source`** (`MessageSourceMap` kind + `form`, e.g. `form: 'snapshot'`). UI, replay, and projections can then tell human input from plugin-injected context.
 
-### Why “read the half-panel DOM” fails
+### Why “read the workbench DOM” fails
 
 | Approach | Problem |
 |---|---|
 | Playwright / Computer Use / screen scrape | Slow, brittle, unstructured; not the business source of truth |
 | Vue state only, no Host publish | Model requests assemble on the Host; Client memory is invisible to the Agent |
-| Hard-code the half-panel into `agent-loop` or Conversation | Breaks extension discipline; hard to disable or reuse |
+| Hard-code the workbench into `agent-loop` or Conversation | Breaks extension discipline; hard to disable or reuse |
 | Dump full-page HTML into the system prompt | Noisy, cache-hostile, hard to maintain; still requires Session events to be compliant |
 
 Correct path: **Vue publishes a structured snapshot → Host stores it → pre-step (or a tool) writes the Session → the model reads the log projection.**
 
 ### Relation to Cordis plugins
 
-Almost every Harness capability is a Cordis plugin row (`cordis.yml` / `cordis.patch.yml`). Context injection is the same: a mountable / `disabled` Host plugin can turn “conversation reads the half-panel” on or off without changing the agent loop or removing the UI.
+Almost every Harness capability is a Cordis plugin row (`cordis.yml` / `cordis.patch.yml`). Context injection is the same: a mountable / `disabled` Host plugin can turn “conversation reads the workbench” on or off without changing the agent loop or removing the UI.
 
 -----
 
-<a id="these-plugins-purpose-and-design"></a>
-## These plugins: purpose and design
+<a id="workbench-snapshot-plugins-purpose-and-design"></a>
+## Workbench snapshot plugins: purpose and design
 
 ### Purpose
 
-When the left half-panel shows a list or an open bill form, and the user asks in the right-hand chat to “turn the current list into JSON”, the model should receive the **structured view currently displayed** — not guess, and not scrape the DOM.
+When the Custom Workbench shows a list or an open bill form, and the user asks in the right-hand chat to “turn the current list into JSON”, the model should receive the **structured view currently displayed** — not guess, and not scrape the DOM.
 
 Constraints:
 
-- **Minimal Harness intrusion**: do not change the agent loop; do not bury logic in ui-layout / Conversation.
-- **Independently removable**: half-panel UI and “inject into the model” stay decoupled; disable Host rows without tearing down the UI.
+- **Minimal Harness intrusion**: do not change the agent loop or Conversation; ui-layout / ui-workspace share only one split panel id.
+- **Independently removable**: workbench UI and “inject into the model” stay decoupled; disable the Host injection row without tearing down the UI.
 - **Structured publish**: list rows / form fields, not HTML.
 
-### Two Host plugin rows + the existing Client shell
+### Two Host plugin rows + the browser shell
 
 | Package | npm name | Role | Writes Session? |
 |---|---|---|---|
-| `packages/1tmt/panel` | `@deepseek-ai/dsh-1tmt-panel` | Host Remote `tmtPanel`: process-local latest snapshot | No (memory only) |
-| `packages/1tmt/panel-context` | `@deepseek-ai/dsh-1tmt-panel-context` | `agent/pre-step` listener; appends durable `user/message` when the hash changes | Yes |
-| `packages/client/ui-custom-panel` | `@deepseek-ai/dsh-client-ui-custom-panel` | React shell: wire `ctx.remote.tmtPanel` into `CustomBridge` | No (forward only) |
-| `packages/1tmt/vue` | `@deepseek-ai/dsh-1tmt-vue` | Half-panel Vue: `publishSnapshot` when business data changes | No (Bridge only) |
+| `packages/1tmt/workbench` | `@deepseek-ai/dsh-1tmt-workbench` | Host Remote `tmtWorkbench`: process-local latest snapshot | No (memory only) |
+| `packages/1tmt/workbench-context` | `@deepseek-ai/dsh-1tmt-workbench-context` | `agent/pre-step` listener; appends durable `user/message` when the hash changes | Yes |
+| `packages/client/ui-custom-workbench` | `@deepseek-ai/dsh-client-ui-custom-workbench` | React shell: wire `ctx.remote.tmtWorkbench` into `CustomWorkbenchBridge` | No (forward only) |
+| `packages/1tmt/vue` | `@deepseek-ai/dsh-1tmt-vue` | Workbench Vue: `publishSnapshot` when business data changes | No (Bridge only) |
 
-`panel` and `panel-context` stay separate so you can keep storage without injection (e.g. a later read tool), or keep injection while swapping the store. That matches the mountable style of `time-context`.
+`workbench` and `workbench-context` stay separate so you can keep storage without injection (e.g. a later read tool), or keep injection while swapping the store. That matches the mountable style of `time-context`.
 
 ### End-to-end data path
 
 ```mermaid
 flowchart LR
-  vue[Vue half-panel list/form]
-  bridge[CustomBridge]
-  remote[tmtPanel Remote]
+  vue[Vue custom workbench list/form]
+  bridge[CustomWorkbenchBridge]
+  remote[tmtWorkbench Remote]
   store[Host in-process snapshot + hash]
-  prestep[panel-context pre-step]
+  prestep[workbench-context pre-step]
   session[Session user/message]
   model[Next model request]
 
@@ -129,30 +194,30 @@ flowchart LR
 Step by step:
 
 1. **Vue** calls `bridge.publishSnapshot({ kind, title, rows, form? })` when the list/form changes (or when the placeholder mounts).
-2. **Shell** `CustomPanelPage` forwards to `ctx.remote.tmtPanel.publishSnapshot` (Typert Remote, browser → Host).
-3. **`dsh-1tmt-panel`** replaces the process-local “current snapshot” and computes a content `hash` (not on disk, not in the Session).
-4. **`dsh-1tmt-panel-context`** on `agent/pre-step` reads `ctx.tmtPanel.getStored()`: if the snapshot is non-empty and its `hash` differs from the last injection for this Session, it appends a `user/message` with `source.kind: '1tmt-panel-context'` and `form: 'snapshot'`.
+2. **Shell** `CustomWorkbenchPage` forwards to `ctx.remote.tmtWorkbench.publishSnapshot` (Typert Remote, browser → Host).
+3. **`dsh-1tmt-workbench`** replaces the process-local “current snapshot” and computes a content `hash` (not on disk, not in the Session).
+4. **`dsh-1tmt-workbench-context`** on `agent/pre-step` reads `ctx.tmtWorkbench.getStored()`: if the snapshot is non-empty and its `hash` differs from the last injection for this Session, it appends a `user/message` with `source.kind: '1tmt-workbench-context'` and `form: 'snapshot'`. The Session projection `tmtWorkbenchContext` folds the last injected hash from the log, so replay and restarts reach the same decision.
 5. After the loop commits that message, this step and later projections include that context in the model history.
 
-By default only a **summary** is injected (kind / title / items / hash). With `injectFullRows: true`, JSON rides along within `maxPayloadChars`; oversized payloads note the omission. Large bodies can later use a read-only tool (not shipped yet).
+By default only a **summary** is injected (kind / title / items / hash); the model sees text such as `Custom workbench snapshot (kind=list, title="…", items=2, hash=…).`. With `injectFullRows: true`, JSON rides along within `maxPayloadChars`; oversized payloads note the omission. Large bodies can later use a read-only tool (not shipped yet).
 
 ### Mount and disable
 
 `packages/bundle/web-app/cordis.patch.yml` already mounts:
 
 ```yaml
-- id: 1tmt-panel
-  name: '@deepseek-ai/dsh-1tmt-panel'
-- id: 1tmt-panel-context
-  name: '@deepseek-ai/dsh-1tmt-panel-context'
+- id: 1tmt-workbench
+  name: '@deepseek-ai/dsh-1tmt-workbench'
+- id: 1tmt-workbench-context
+  name: '@deepseek-ai/dsh-1tmt-workbench-context'
   config:
     injectFullRows: false
     maxPayloadChars: 4000
 ```
 
-On the Client, `dsh-api-remotes` mounts the generated `tmtPanel` remote; `ui-custom-panel` injects `remote.tmtPanel`.
+On the Client, `dsh-api-remotes` mounts the generated `tmtWorkbench` remote; `ui-custom-workbench` injects `remote.tmtWorkbench`.
 
-Remove those two rows (or set `disabled: true`) and the half-panel UI still works, but the **conversation no longer auto-reads the snapshot** — that is the independent-plugin boundary.
+Disable `1tmt-workbench-context` (or set `disabled: true`) and the workbench UI still works, but the **conversation no longer auto-reads the snapshot** — that is the independent-plugin boundary. The [switch matrix](#custom-workbench-overview) lists every row's effect.
 
 ### How product pages publish (developer contract)
 
@@ -179,19 +244,19 @@ Conventions:
 
 - Publish **structured fields** only (string / number / boolean / null); never HTML or Element instances.
 - Publish again whenever the **user-visible** list or form changes; identical content yields the same hash and skips a second pre-step injection.
-- On unmount, Vue/shell call `clearSnapshot()` so stale data does not linger in the process.
+- On leaving the workbench, Vue/shell call `clearSnapshot()` so stale data does not linger in the process.
 
 ### Current limitations (package READMEs own detail)
 
 - The snapshot is the **latest process-wide** value, not Session-keyed; Host restart drops it.
 - No read-only tool yet; oversized payloads rely on the summary or a future tool.
-- Package contracts: [`panel/README.md`](../../packages/1tmt/panel/README.md), [`panel-context/README.md`](../../packages/1tmt/panel-context/README.md).
+- Package contracts: [`workbench/README.md`](../../packages/1tmt/workbench/README.md), [`workbench-context/README.md`](../../packages/1tmt/workbench-context/README.md).
 
 ### Do not
 
 - Treat DOM / screenshots as the business truth
 - Expect the model to “see” Vue state that never reaches the Host
-- Change `agent-loop` or hard-code half-panel logic into Conversation
+- Change `agent-loop` or hard-code workbench logic into Conversation
 - Stuff full-page HTML into the system prompt
 
 -----
@@ -202,10 +267,10 @@ Conventions:
 | Scenario | Change here | Do not change |
 |---|---|---|
 | Employee login form / style / interaction | `packages/1tmt/vue/src/apps/login/` | `packages/client/ui-settings-account` (DeepSeek account login) |
-| Left half-panel business page | `packages/1tmt/vue/src/apps/custom-panel/` | Conversation, sidebar chrome, settings body |
-| Half-panel → model context | Vue `publishSnapshot` + the two Host plugins above | agent-loop, ui-layout, reading the DOM |
+| Custom Workbench business page | `packages/1tmt/vue/src/apps/custom-workbench/` | Conversation, sidebar chrome, settings body |
+| Workbench → model context | Vue `publishSnapshot` + the two Host plugins above | agent-loop, ui-layout, reading the DOM |
 | Login backend / MCP | Bridge + `packages/api/pgy-login` (Host Remote) | `import` Cordis / `ctx` from Vue |
-| Sidebar Custom label / icon | `packages/client/ui-custom-panel` (thin shell) | Migrate the whole app to Vue |
+| Sidebar Custom Workbench label / icon | `packages/client/ui-custom-workbench` (thin shell) | Migrate the whole app to Vue |
 
 Architecture:
 
@@ -213,22 +278,22 @@ Architecture:
 flowchart LR
   subgraph react [Harness React shells]
     pgyHost[ui-pgy-login]
-    customHost[ui-custom-panel]
+    customHost[ui-custom-workbench]
     conv[Conversation right]
   end
   subgraph vue [packages/1tmt/vue]
     loginApp[login/App.vue]
-    customApp[custom-panel/App.vue]
+    customApp[custom-workbench/App.vue]
   end
   subgraph host [Host plugins]
-    panel[tmtPanel]
-    ctxPlugin[panel-context]
+    workbench[tmtWorkbench]
+    ctxPlugin[workbench-context]
   end
   pgyHost -->|mountLogin + LoginBridge| loginApp
-  customHost -->|mountCustomPanel + CustomBridge| customApp
+  customHost -->|mountCustomWorkbench + CustomWorkbenchBridge| customApp
   customApp -->|publishSnapshot| customHost
-  customHost -->|Remote| panel
-  panel --> ctxPlugin
+  customHost -->|Remote| workbench
+  workbench --> ctxPlugin
   ctxPlugin -->|pre-step user/message| conv
 ```
 
@@ -240,20 +305,20 @@ Vue obtains the Bridge with `inject('1tmtBridge')`. **Do not** depend on Cordis,
 ## Directory map
 
 ```
-packages/1tmt/vue/                 # Product UI (npm: @deepseek-ai/dsh-1tmt-vue)
-  src/bridge.ts                    # LoginBridge / CustomBridge types
-  src/mount.ts                     # mountLogin / mountCustomPanel
-  src/apps/login/App.vue           # Employee login (Element Plus)
-  src/apps/custom-panel/App.vue    # Left half-panel; publishSnapshot on change
-  types/index.d.ts                 # Public types for React shells
+packages/1tmt/vue/                     # Product UI (npm: @deepseek-ai/dsh-1tmt-vue)
+  src/bridge.ts                        # LoginBridge / CustomWorkbenchBridge types
+  src/mount.ts                         # mountLogin / mountCustomWorkbench
+  src/apps/login/App.vue               # Employee login (Element Plus)
+  src/apps/custom-workbench/App.vue    # Custom workbench; publishSnapshot on change
+  types/index.d.ts                     # Public types for React shells
 
-packages/1tmt/panel/               # Host Remote: snapshot store (ctx.tmtPanel)
-packages/1tmt/panel-context/       # agent/pre-step: inject changed snapshots
-packages/client/ui-pgy-login/      # Login shell: Bridge + mount/unmount
-packages/client/ui-custom-panel/   # Half-panel shell: sidebar + Bridge → Remote
-packages/api/pgy-login/            # Host Remote: orgs, WMS login, backend URL
-packages/api/remotes/              # Client Remote assembly (includes tmtPanel)
-docs/1tmt/README.md                # This guide
+packages/1tmt/workbench/               # Host Remote: snapshot store (ctx.tmtWorkbench)
+packages/1tmt/workbench-context/       # agent/pre-step: inject changed snapshots
+packages/client/ui-pgy-login/          # Login shell: Bridge + mount/unmount
+packages/client/ui-custom-workbench/   # Workbench shell: sidebar + Bridge → Remote
+packages/api/pgy-login/                # Host Remote: orgs, WMS login, backend URL
+packages/api/remotes/                  # Client Remote assembly (includes tmtWorkbench)
+docs/1tmt/README.md                    # This guide
 ```
 
 -----
@@ -269,10 +334,10 @@ pnpm --filter @deepseek-ai/dsh-1tmt-vue build
 
 # 2. Bundle client shells (rebuild even for CSS/copy tweaks to avoid stale lib)
 pnpm --filter @deepseek-ai/dsh-client-ui-pgy-login bundle
-pnpm --filter @deepseek-ai/dsh-client-ui-custom-panel bundle
+pnpm --filter @deepseek-ai/dsh-client-ui-custom-workbench bundle
 
-# 3. After panel Host source edits: tsc, then Host tsdown (emits typert remote)
-pnpm exec tsc -b packages/1tmt/panel/tsconfig.host.json packages/1tmt/panel-context
+# 3. After workbench Host source edits: tsc, then Host tsdown (emits typert remote)
+pnpm exec tsc -b packages/1tmt/workbench/tsconfig.host.json packages/1tmt/workbench-context
 pnpm exec tsdown --config-loader native --env.DSH_BUILD_FACE host
 
 # 4. Launch (change port if 3080 is busy)
@@ -286,10 +351,10 @@ Focused tests:
 
 ```sh
 pnpm exec vitest run packages/1tmt/vue/tests/mount.spec.ts
-pnpm exec vitest run packages/1tmt/panel/tests
-pnpm exec vitest run packages/1tmt/panel-context/tests
+pnpm exec vitest run packages/1tmt/workbench/tests
+pnpm exec vitest run packages/1tmt/workbench-context/tests
 pnpm exec vitest run packages/client/ui-pgy-login/tests/login-overlay.client.spec.tsx
-pnpm exec vitest run packages/client/ui-custom-panel/tests
+pnpm exec vitest run packages/client/ui-custom-workbench/tests
 ```
 
 -----
@@ -308,16 +373,16 @@ Settings “backend / RuoYi” and sidebar sign-out stay in `ui-pgy-login` React
 
 -----
 
-<a id="edit-the-custom-half-panel"></a>
-## Edit the custom half-panel
+<a id="edit-the-custom-workbench"></a>
+## Edit the Custom Workbench
 
-1. Put business UI in `packages/1tmt/vue/src/apps/custom-panel/App.vue` (and CSS beside it).
-2. Sidebar Custom opens AppFrame with this page on the left and native Conversation on the right (panel id = `custom`).
-3. Sidebar label/icon: `packages/client/ui-custom-panel/src/client/locales.ts`, `CustomPanelIcon.tsx`.
-4. For Host / Remote / session access: extend `CustomBridge`; `CustomPanelPage.tsx` injects from `ctx` (`publishSnapshot` / `clearSnapshot` already exist).
-5. Call `bridge.publishSnapshot(...)` after list/form changes so the next pre-step can see them (see “These plugins” above).
+1. Put business UI in `packages/1tmt/vue/src/apps/custom-workbench/App.vue` (and CSS beside it).
+2. The sidebar Custom Workbench entry opens AppFrame with this page on the left and native Conversation on the right (panel id = `custom-workbench`; see [how it works](#custom-workbench-overview)).
+3. Sidebar label/icon: `packages/client/ui-custom-workbench/src/client/locales.ts`, `CustomWorkbenchIcon.tsx`.
+4. For Host / Remote / session access: extend `CustomWorkbenchBridge`; `CustomWorkbenchPage.tsx` injects from `ctx` (`publishSnapshot` / `clearSnapshot` already exist).
+5. Call `bridge.publishSnapshot(...)` after list/form changes so the next pre-step can see them (see “Workbench snapshot plugins” above).
 
-The placeholder publishes a demo list on mount and shows `published hash=…` for end-to-end checks.
+The placeholder publishes a demo list on mount and shows `published hash=…` for end-to-end checks. The “Republish demo list” button publishes the same data again to verify that an unchanged hash is not injected twice.
 
 -----
 
@@ -329,8 +394,8 @@ Vue **must not** touch `ctx`. The path is:
 1. Add methods/fields in `packages/1tmt/vue/src/bridge.ts` and `types/index.d.ts` (keep both aligned).
 2. Assemble the Bridge in the shell:
    - Login: `packages/client/ui-pgy-login/src/client/LoginOverlay.tsx` (and `inject` in `index.ts`)
-   - Half-panel: `packages/client/ui-custom-panel/src/client/CustomPanelPage.tsx` (add `inject` deps when needed)
-3. If the capability does not exist yet: implement a Host Remote first (e.g. `pgy-login`, `1tmt-panel`), wire the shell, and mount the Client remote in `dsh-api-remotes`.
+   - Workbench: `packages/client/ui-custom-workbench/src/client/CustomWorkbenchPage.tsx` (add `inject` deps when needed)
+3. If the capability does not exist yet: implement a Host Remote first (e.g. `pgy-login`, `1tmt-workbench`), wire the shell, and mount the Client remote in `dsh-api-remotes`.
 4. In Vue: `const bridge = inject<YourBridge>('1tmtBridge')` and call only the Bridge.
 
 `BridgeResult<T>` mirrors Typert `RemoteResult`: `{ ok: true, value }` / `{ ok: false, error: { message } }`. Shells may forward Remote results to Vue as-is.
@@ -343,7 +408,7 @@ Vue **must not** touch `ctx`. The path is:
 | Copy | File |
 |---|---|
 | Login labels (passed into Vue) | `packages/client/ui-pgy-login/src/client/locales.ts` |
-| Half-panel title/intro, sidebar Custom, republish | `packages/client/ui-custom-panel/src/client/locales.ts` |
+| Workbench title/intro, sidebar Custom Workbench, republish | `packages/client/ui-custom-workbench/src/client/locales.ts` (namespace `customWorkbench`) |
 
 Vue reads `bridge.labels` only; do not hard-code product copy in `.vue` files.
 
@@ -353,12 +418,13 @@ Vue reads `bridge.labels` only; do not hard-code product copy in `.vue` files.
 ## Acceptance checklist
 
 - [ ] `pnpm --filter @deepseek-ai/dsh-1tmt-vue build` succeeds
-- [ ] `ui-pgy-login` / `ui-custom-panel` host `bundle` succeeds
-- [ ] Host has `packages/1tmt/panel/lib/typert.remote-client.js` (Remote generated)
+- [ ] `ui-pgy-login` / `ui-custom-workbench` host `bundle` succeeds
+- [ ] Host has `packages/1tmt/workbench/lib/typert.remote-client.js` (Remote generated)
 - [ ] `dsh web`: fullscreen employee login is Element Plus (DevTools: `.el-card` / `style#dsh-1tmt-element-plus`)
-- [ ] After login, Custom opens left Vue + right native chat; half-panel shows `published hash=…`
-- [ ] Asking “turn the current list into JSON” in chat references the demo list (`1tmt-panel-context` mounted)
-- [ ] With `1tmt-panel-context` `disabled: true`: half-panel remains, new turns no longer auto-include the snapshot summary
+- [ ] After login, Custom Workbench opens left Vue + right native chat; the workbench shows `published hash=…`
+- [ ] Asking “turn the current list into JSON” in chat references the demo list (`1tmt-workbench-context` mounted)
+- [ ] With `1tmt-workbench-context` `disabled: true`: the workbench remains, new turns no longer auto-include the snapshot summary
+- [ ] Settings → built-in plugins lists `1tmt-workbench`, `1tmt-workbench-context`, and `ui-custom-workbench` as active
 - [ ] Settings → DeepSeek account entry stays native Harness (not the Element Plus employee login)
 
 -----
@@ -369,8 +435,9 @@ Vue reads `bridge.labels` only; do not hard-code product copy in `.vue` files.
 - Architecture (model-visible / pre-step): [`docs/architecture.md`](../architecture.md)
 - Group map: [`packages/1tmt/README.md`](../../packages/1tmt/README.md)
 - Vue package: [`packages/1tmt/vue/README.md`](../../packages/1tmt/vue/README.md)
-- Snapshot Remote: [`packages/1tmt/panel/README.md`](../../packages/1tmt/panel/README.md)
-- pre-step injection: [`packages/1tmt/panel-context/README.md`](../../packages/1tmt/panel-context/README.md)
+- Snapshot Remote: [`packages/1tmt/workbench/README.md`](../../packages/1tmt/workbench/README.md)
+- pre-step injection: [`packages/1tmt/workbench-context/README.md`](../../packages/1tmt/workbench-context/README.md)
+- Browser shell: [`packages/client/ui-custom-workbench/README.md`](../../packages/client/ui-custom-workbench/README.md)
 - Sample `time-context`: [`packages/context/time-context/README.md`](../../packages/context/time-context/README.md)
 - Web Client shell: [`docs/subsystems/web-client.md`](../subsystems/web-client.md)
 - RuoYi MCP / WMS login integration: [`docs/1tmt-ruoyi-wms-integration.md`](../1tmt-ruoyi-wms-integration.md)

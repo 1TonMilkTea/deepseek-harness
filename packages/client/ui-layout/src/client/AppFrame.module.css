@@ -69,7 +69,7 @@
   overflow: hidden;
 }
 
-/* Custom panel + Conversation side by side (see SPLIT_WITH_CONVERSATION_PANEL_ID). */
+/* Custom workbench + Conversation side by side (see SPLIT_WITH_CONVERSATION_PANEL_ID). */
 .splitMain {
   display: flex;
   flex: 1 1 auto;

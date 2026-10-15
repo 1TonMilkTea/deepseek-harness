@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Local product UI and Host context plugins that are not part of the upstream Harness React shell. Pages are Vue 3 + Element Plus (MIT) islands; Cordis React plugins only mount them and pass bridges. Host packages `panel` / `panel-context` store a custom-panel snapshot and inject it on `agent/pre-step` so the conversation can read what the left pane shows. Start with [docs/1tmt/README.md](../../docs/1tmt/README.md) for Harness context rules and the plugin data path. Presentation contracts for the surrounding Web shell live in the [Web Client](../../docs/subsystems/web-client.md) subsystem.
+Local product UI and Host context plugins that are not part of the upstream Harness React shell. Pages are Vue 3 + Element Plus (MIT) islands; Cordis React plugins only mount them and pass bridges. Host packages `workbench` / `workbench-context` store the Custom Workbench snapshot and inject it on `agent/pre-step` so the conversation can read what the workbench shows. Start with [docs/1tmt/README.md](../../docs/1tmt/README.md) for how the Custom Workbench works, Harness context rules, and the plugin data path. Presentation contracts for the surrounding Web shell live in the [Web Client](../../docs/subsystems/web-client.md) subsystem.
 
 ## Table of Contents
 
@@ -24,16 +24,16 @@ Local product UI and Host context plugins that are not part of the upstream Harn
 
 | Package | Role | ctx key |
 |---|---|---|
-| [`vue/`](vue/README.md) | Login + custom-panel Element Plus apps and mount helpers | — |
-| [`panel/`](panel/README.md) | Host Remote store for the custom-panel snapshot | `tmtPanel` |
-| [`panel-context/`](panel-context/README.md) | `agent/pre-step` injection of the latest snapshot summary | — |
+| [`vue/`](vue/README.md) | Login + Custom Workbench Element Plus apps and mount helpers | — |
+| [`workbench/`](workbench/README.md) | Host Remote store for the Custom Workbench snapshot | `tmtWorkbench` |
+| [`workbench-context/`](workbench-context/README.md) | `agent/pre-step` injection of the latest snapshot summary | — |
 
 -----
 
 <a id="related-documentation"></a>
 ## Related documentation
 
-- [docs/1tmt/README.md](../../docs/1tmt/README.md) — Harness context-reading rules, panel plugins, and UI extension
+- [docs/1tmt/README.md](../../docs/1tmt/README.md) — how the Custom Workbench works, Harness context-reading rules, and UI extension
 - [Web Client](../../docs/subsystems/web-client.md) — React Cordis host stack
 - [architecture.md](../../docs/architecture.md) — model-visible means logged; `agent/pre-step`
 

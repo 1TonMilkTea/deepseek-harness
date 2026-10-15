@@ -3,20 +3,20 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/1tmt/vue/README.md
 /:
-  en: d3082d025dd48770
-  zh: 9e1bec98ba61f6f5
+  en: 440538744447fe9d
+  zh: f559c75681d95d9f
 /deepseek-ai-dsh-1tmt-vue:
   en: 725a84408ad0217c
   zh: 60fcdd71865d7d7c
 /deepseek-ai-dsh-1tmt-vue/summary:
-  en: 5cf5313b51221f94
-  zh: 2dd80b225e4a4510
+  en: 6dc01b8906902423
+  zh: d2d52fa6f6f8df1d
 /deepseek-ai-dsh-1tmt-vue/table-of-contents:
   en: d7fbbba70852c433
   zh: b1d8d953f9d82d8a
 /deepseek-ai-dsh-1tmt-vue/use-this-package:
-  en: f46092827117e705
-  zh: fb00182bad619b72
+  en: a5995387782792a1
+  zh: d66a927a258f3289
 /deepseek-ai-dsh-1tmt-vue/model-experience:
   en: 618008c7641070e7
   zh: 9411b7c03c9d30ee
@@ -24,8 +24,8 @@
   en: ca75c51c89c2c9b0
   zh: 3eeb7ebebcd2be23
 /deepseek-ai-dsh-1tmt-vue/known-limitations-and-deferred-work:
-  en: b7a1bbd6e9f849f2
-  zh: e5b421eeeb2b3e33
+  en: d7545c6f6202bec8
+  zh: 9f17925b1e6bd481
 /deepseek-ai-dsh-1tmt-vue/known-limitations-and-deferred-work/dev-note:
   en: 0a59332a1d13320a
   zh: 5eab36b5be309077

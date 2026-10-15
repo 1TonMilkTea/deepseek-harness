@@ -82,7 +82,7 @@
       "path": "../pgy-login/tsconfig.client.json"
     },
     {
-      "path": "../../1tmt/panel/tsconfig.client.json"
+      "path": "../../1tmt/workbench/tsconfig.client.json"
     },
     {
       "path": "../workspace-files/tsconfig.client.json"

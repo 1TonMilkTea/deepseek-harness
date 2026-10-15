@@ -3,14 +3,14 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { BridgeResult, CustomBridge, LoginBridge } from '../types/index.d.ts'
+import type { BridgeResult, CustomWorkbenchBridge, LoginBridge } from '../types/index.d.ts'
 
 const libEntry = join(dirname(fileURLToPath(import.meta.url)), '../lib/index.js')
 const hasLib = existsSync(libEntry)
 
 afterEach(() => {
   document.body.replaceChildren()
-  document.head.querySelectorAll('style[id^="dsh-1tmt-"]').forEach(node => node.remove())
+  document.head.querySelectorAll('style[id^="dsh-1tmt-"]').forEach((node) => { node.remove() })
 })
 
 describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
@@ -63,10 +63,10 @@ describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
     expect(el.childNodes.length).toBe(0)
   })
 
-  it('mounts and unmounts the custom panel island', async () => {
+  it('mounts and unmounts the custom workbench island', async () => {
     const {
-      mountCustomPanel,
-      unmountCustomPanel,
+      mountCustomWorkbench,
+      unmountCustomWorkbench,
     } = await import(pathToFileURL(libEntry).href) as typeof import('@deepseek-ai/dsh-1tmt-vue')
     const el = document.createElement('div')
     document.body.appendChild(el)
@@ -75,16 +75,16 @@ describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
       value: { hash: 'abc', updatedAt: 1 },
     }))
     const clearSnapshot = vi.fn(async () => ({ ok: true as const, value: undefined }))
-    const bridge: CustomBridge = {
+    const bridge: CustomWorkbenchBridge = {
       labels: { title: 'Custom', intro: 'Intro text', republish: 'Republish' },
       publishSnapshot,
       clearSnapshot,
     }
-    mountCustomPanel(el, bridge)
-    expect(el.querySelector('[data-custom-panel]')).not.toBeNull()
+    mountCustomWorkbench(el, bridge)
+    expect(el.querySelector('[data-custom-workbench]')).not.toBeNull()
     expect(el.textContent).toContain('Custom')
     await vi.waitFor(() => { expect(publishSnapshot).toHaveBeenCalled() })
-    unmountCustomPanel(el)
+    unmountCustomWorkbench(el)
     expect(clearSnapshot).toHaveBeenCalled()
     expect(el.childNodes.length).toBe(0)
   })

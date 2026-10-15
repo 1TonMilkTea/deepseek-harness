@@ -3,59 +3,74 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/1tmt/README.md
 /:
-  en: 29de7b3179a3c77b
-  zh: 169d42f10da3c992
+  en: 621164516df6d050
+  zh: fefdda14c43817da
 /1tmt-developer-guide:
   en: 3b70ea5c2420fbbf
   zh: 9c80a2fcea78c659
 /1tmt-developer-guide/summary:
-  en: 91ef84f6652c68bd
-  zh: b2935db1b34c17fa
+  en: 651cb241986f9537
+  zh: b1db2be9a2cf21e1
 /1tmt-developer-guide/table-of-contents:
-  en: 7f4eaf03bf481ebd
-  zh: 0333da0923513676
+  en: 65e337cd6d2f9c14
+  zh: 4ee69f790bff6405
+/1tmt-developer-guide/custom-workbench-how-it-works:
+  en: c726102a1349440d
+  zh: f5458f4cdedffab7
+/1tmt-developer-guide/custom-workbench-how-it-works/composition-four-parts-one-job-each:
+  en: f7b8d665e4cb14bd
+  zh: 3980e678130a40e8
+/1tmt-developer-guide/custom-workbench-how-it-works/from-the-sidebar-click-to-the-split-view:
+  en: 136a4c025cf930d1
+  zh: d8a01c820b70dce2
+/1tmt-developer-guide/custom-workbench-how-it-works/lifecycle:
+  en: 30244f8ad231dbd1
+  zh: 6c555d5ff6c8e91a
+/1tmt-developer-guide/custom-workbench-how-it-works/switch-matrix-what-disabling-each-row-does:
+  en: b5130995d400838f
+  zh: e716e0af28491c17
 /1tmt-developer-guide/how-harness-reads-context:
   en: edef61a1d08ebb9c
   zh: 0cd60607c0ea6e77
 /1tmt-developer-guide/how-harness-reads-context/hard-rule-model-visible-means-logged:
-  en: ee7e25967277fb70
-  zh: a201289c360e59fd
+  en: 61451d376017852a
+  zh: 43a353a9a8beef3d
 /1tmt-developer-guide/how-harness-reads-context/when-context-enters-a-model-request:
   en: 72e46a18cea48bcd
   zh: ba44a041e75dbc6b
-/1tmt-developer-guide/how-harness-reads-context/why-read-the-half-panel-dom-fails:
-  en: 3b6838fc7a41739a
-  zh: cd0f39071ed5f4fd
+/1tmt-developer-guide/how-harness-reads-context/why-read-the-workbench-dom-fails:
+  en: e55ea47848e5750d
+  zh: 61f1a6b6ac12e148
 /1tmt-developer-guide/how-harness-reads-context/relation-to-cordis-plugins:
-  en: d9fdf023fdb7ef75
-  zh: 177be4570122fbd4
-/1tmt-developer-guide/these-plugins-purpose-and-design:
-  en: 68f3e2f395ea2080
-  zh: 96edb5ebdfdb160a
-/1tmt-developer-guide/these-plugins-purpose-and-design/purpose:
-  en: 8244421b85727aa4
-  zh: d0d885a25cb85815
-/1tmt-developer-guide/these-plugins-purpose-and-design/two-host-plugin-rows-the-existing-client-shell:
-  en: b70d555d89af971f
-  zh: 6ec0d2c2c9e7c533
-/1tmt-developer-guide/these-plugins-purpose-and-design/end-to-end-data-path:
-  en: 3a233cb0999b6656
-  zh: ace6445d37b20e1a
-/1tmt-developer-guide/these-plugins-purpose-and-design/mount-and-disable:
-  en: 49c133a1ce384305
-  zh: 3eb1b3d4111a96c9
-/1tmt-developer-guide/these-plugins-purpose-and-design/how-product-pages-publish-developer-contract:
-  en: 4dea3099c3bb34f9
-  zh: cd70fdd3d4b22afb
-/1tmt-developer-guide/these-plugins-purpose-and-design/current-limitations-package-readmes-own-detail:
-  en: 893bb79f5a3f7a70
-  zh: dd9127d42c8f932b
-/1tmt-developer-guide/these-plugins-purpose-and-design/do-not:
-  en: 4b111318378dd896
-  zh: 1676fafe7066d793
+  en: 8cfa6649375eccc4
+  zh: 0b3253e22e80d089
+/1tmt-developer-guide/workbench-snapshot-plugins-purpose-and-design:
+  en: 2ef3549ddfe9401e
+  zh: 0172172b1aeb153e
+/1tmt-developer-guide/workbench-snapshot-plugins-purpose-and-design/purpose:
+  en: 2c8e474dd0e275fc
+  zh: 473feaa7a192e607
+/1tmt-developer-guide/workbench-snapshot-plugins-purpose-and-design/two-host-plugin-rows-the-browser-shell:
+  en: f01c86803c91525d
+  zh: 729ce5897905b783
+/1tmt-developer-guide/workbench-snapshot-plugins-purpose-and-design/end-to-end-data-path:
+  en: 4ed1b33c76b32a9f
+  zh: 8bd6cc90e318bc37
+/1tmt-developer-guide/workbench-snapshot-plugins-purpose-and-design/mount-and-disable:
+  en: af87b8058175ff66
+  zh: 818d5e86d6e7c873
+/1tmt-developer-guide/workbench-snapshot-plugins-purpose-and-design/how-product-pages-publish-developer-contract:
+  en: 17d084bb812c8bf8
+  zh: 5b9a0c306ccf1f0b
+/1tmt-developer-guide/workbench-snapshot-plugins-purpose-and-design/current-limitations-package-readmes-own-detail:
+  en: c200f96bb154824a
+  zh: 31508ca75eec2cba
+/1tmt-developer-guide/workbench-snapshot-plugins-purpose-and-design/do-not:
+  en: 759efb6b3b304a10
+  zh: 4b7a9ddbedd26d15
 /1tmt-developer-guide/boundaries-change-do-not-change:
-  en: 4575b9d2bb34794f
-  zh: 520d094ffa161477
+  en: 55ee3d938909ce94
+  zh: 5e345d996c637eae
 /1tmt-developer-guide/directory-map:
   en: 03e8fef1d20ffc50
   zh: 26e725bd074745d1
@@ -63,20 +78,20 @@
   en: d86fc63869afa047
   zh: 039ccfd4e1119d5b
 /1tmt-developer-guide/edit-the-login-page:
-  en: 3e822287d77ebad6
-  zh: 77ea132db9be0c1e
-/1tmt-developer-guide/edit-the-custom-half-panel:
-  en: b0c93939ee5f0823
-  zh: d474527f0d6d4221
+  en: 4b56552820921b56
+  zh: 13caff1ce1b5aaac
+/1tmt-developer-guide/edit-the-custom-workbench:
+  en: 0c197312f4a1fa4f
+  zh: 5d8fa92ccfa3d75e
 /1tmt-developer-guide/give-vue-host-capabilities-bridge:
-  en: 5a6bbe3af8990dcb
-  zh: 6c55078d37af820a
+  en: 1d2903aa0032bf92
+  zh: 6667c0cdd6036782
 /1tmt-developer-guide/copy-and-locales:
-  en: 809a378c8e97f3df
-  zh: 66b602634de0df65
+  en: f32c044a54f6666d
+  zh: 087c63f4073db20c
 /1tmt-developer-guide/acceptance-checklist:
-  en: fcd7f11210a59b14
-  zh: bc8769008ce57207
+  en: 3d2723f97fc65d31
+  zh: bc81ab9ab7080141
 /1tmt-developer-guide/related-links:
-  en: 51a0d7f91c5362c6
-  zh: 03c042dcfa0ae05e
+  en: 41d4ef29ee6995ca
+  zh: 7cf457da41983497

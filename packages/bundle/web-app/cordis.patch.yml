@@ -146,11 +146,12 @@
         clientName: harness-desktop
         mcpServerName: 1tmt
 
-    # 1TMT：自定义半屏快照 Host 存储；卸掉后对话不再自动读到半屏数据。
-    - id: 1tmt-panel
-      name: '@deepseek-ai/dsh-1tmt-panel'
-    - id: 1tmt-panel-context
-      name: '@deepseek-ai/dsh-1tmt-panel-context'
+    # 1TMT：自定义工作台快照的 Host 存储（Remote tmtWorkbench）与 pre-step 注入；
+    # 卸掉后对话不再自动读到自定义工作台数据。
+    - id: 1tmt-workbench
+      name: '@deepseek-ai/dsh-1tmt-workbench'
+    - id: 1tmt-workbench-context
+      name: '@deepseek-ai/dsh-1tmt-workbench-context'
       config:
         injectFullRows: false
         maxPayloadChars: 4000
@@ -422,9 +423,9 @@
     - id: ui-schedule
       name: '@deepseek-ai/dsh-client-ui-schedule'
 
-    # Custom sidebar panel: placeholder beside Conversation (AppFrame split).
-    - id: ui-custom-panel
-      name: '@deepseek-ai/dsh-client-ui-custom-panel'
+    # Custom workbench sidebar entry: Vue island beside Conversation (AppFrame split).
+    - id: ui-custom-workbench
+      name: '@deepseek-ai/dsh-client-ui-custom-workbench'
 
     # Goal surface: GoalBar in the input dock over the goal session projection.
     - id: ui-goal

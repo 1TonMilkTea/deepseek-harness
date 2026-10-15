@@ -1,5 +1,5 @@
 ---
-description: "1tmt 登录与自定义半屏 UI 的 Vue 3 + Element Plus 岛屿。"
+description: "1tmt 登录与自定义工作台 UI 的 Vue 3 + Element Plus 岛屿。"
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-自包含的 Vue 3 + Element Plus（MIT）UI 岛屿，覆盖 1tmt 产品页：全屏 WMS 登录与自定义半屏。React Cordis 宿主调用 `mountLogin` / `mountCustomPanel` 并传入类型化 Bridge；Vue 从不 import Cordis。这些屏幕的产品改动应只改本包。日常扩展步骤（构建、Bridge、上下文发布）见开发指南 [docs/1tmt/README.md](../../../docs/1tmt/README.zh.md)。
+自包含的 Vue 3 + Element Plus（MIT）UI 岛屿，覆盖 1tmt 产品页：全屏 WMS 登录与自定义工作台。React Cordis 宿主调用 `mountLogin` / `mountCustomWorkbench` 并传入类型化 Bridge；Vue 从不 import Cordis。这些屏幕的产品改动应只改本包。日常扩展步骤（构建、Bridge、上下文发布）见开发指南 [docs/1tmt/README.md](../../../docs/1tmt/README.zh.md)。
 
 ## 目录
 
@@ -29,9 +29,9 @@ pnpm --filter @deepseek-ai/dsh-1tmt-vue build
 React 宿主导入构建后的 `lib/index.js` 入口：
 
 - `mountLogin(el, bridge)` / `unmountLogin(el)`
-- `mountCustomPanel(el, bridge)` / `unmountCustomPanel(el)`
+- `mountCustomWorkbench(el, bridge)` / `unmountCustomWorkbench(el)`
 
-`LoginBridge` 暴露 `status`、`getBackendConfig`、`setBackendConfig`、`listOrganizations`、`wmsLogin`、`refreshSessions`、`onLoggedIn` 与 `labels`。`CustomBridge` 现已包含 `labels`、`publishSnapshot` 与 `clearSnapshot`。
+`LoginBridge` 暴露 `status`、`getBackendConfig`、`setBackendConfig`、`listOrganizations`、`wmsLogin`、`refreshSessions`、`onLoggedIn` 与 `labels`。`CustomWorkbenchBridge` 现已包含 `labels`、`publishSnapshot` 与 `clearSnapshot`。
 
 Element Plus 为 MIT 许可，作为本包的普通 npm 依赖引入。
 
@@ -50,8 +50,8 @@ Element Plus 为 MIT 许可，作为本包的普通 npm 依赖引入。
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **设置页 BackendSection / 退出登录仍在 React** — 本包只覆盖全屏登录与自定义半屏。
-- **先 build 再打 client bundle** — 宿主导入 Vite `lib/` 产物；在打包 `ui-pgy-login` / `ui-custom-panel` 前先跑本包 `build`。
+- **设置页 BackendSection / 退出登录仍在 React** — 本包只覆盖全屏登录与自定义工作台。
+- **先 build 再打 client bundle** — 宿主导入 Vite `lib/` 产物；在打包 `ui-pgy-login` / `ui-custom-workbench` 前先跑本包 `build`。
 
 <a id="dev-note"></a>
 ### 开发备注
