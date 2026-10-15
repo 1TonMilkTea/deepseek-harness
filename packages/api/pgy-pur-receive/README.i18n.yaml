@@ -4,13 +4,13 @@
 #   pnpm run verify-translation-pairing --write packages/api/pgy-pur-receive/README.md
 /:
   en: e4758b517365bf16
-  zh: 14b2505617edd9b8
+  zh: 7405be873eb858cb
 /deepseek-ai-dsh-api-pgy-pur-receive:
   en: fe6745f306a0bc38
   zh: ab939beea41d2cf5
 /deepseek-ai-dsh-api-pgy-pur-receive/summary:
   en: 06116f4deef85c7f
-  zh: 7447b737920ab146
+  zh: 9383d7dcf3fb1327
 /deepseek-ai-dsh-api-pgy-pur-receive/table-of-contents:
   en: 2d9e6ac7cd680553
   zh: cde5c98c64706e91
@@ -28,7 +28,7 @@
   zh: 3eeb7ebebcd2be23
 /deepseek-ai-dsh-api-pgy-pur-receive/known-limitations-and-deferred-work:
   en: 2adcbe1cebb076ea
-  zh: 6db43628df23dfcb
+  zh: bd61ebfd4a8ab75d
 /deepseek-ai-dsh-api-pgy-pur-receive/known-limitations-and-deferred-work/dev-note:
   en: 33aab115373fd8b2
-  zh: 69fbf81883939e2d
+  zh: 136b82679ca477de

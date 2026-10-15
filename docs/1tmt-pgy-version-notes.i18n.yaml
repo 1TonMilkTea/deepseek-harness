@@ -4,19 +4,19 @@
 #   pnpm run verify-translation-pairing --write docs/1tmt-pgy-version-notes.md
 /1tmt-puyuan-harness-version-notes-developers:
   en: 074c29c7101ef779
-  zh: c660702bebd47cd4
+  zh: e305e455a3f205b9
 /1tmt-puyuan-harness-version-notes-developers/overview-what-shipped:
   en: e15fcf7a8aa3cd7f
-  zh: 28d62601c00e3180
+  zh: 50ee85789bb0b826
 /1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological:
   en: c030024cd79c44fb
   zh: ed79036bf3a81146
 /1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/258a332-wire-ruoyi-mcp-into-dsh-web-and-ship-a-windows-portable-zip:
   en: d4b552cf2725fce3
-  zh: 67c2218a57b48577
+  zh: da303574bf87a4ed
 /1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/1626d69-rename-the-mcp-client-namespace-to-1tmt:
   en: 28b262748d5364d6
-  zh: b04542508ac07017
+  zh: 404d00d8633f412a
 /1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/8e24320-document-which-mcp-tools-dsh-web-connects-to:
   en: 68e817dca1747f64
   zh: 732c487cbbee54d2
@@ -24,8 +24,8 @@
   en: 8ada8553419476a0
   zh: 5d0174f0145d1fde
 /1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/229e198-note-cross-machine-ruoyi-mcp-url-in-cmd:
-  en: 01d20bf5196714ee
-  zh: 7a6f0be19430ad15
+  en: 965719e2dcfe9464
+  zh: c826d3d178bcc742
 /1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/9297dc4-truck-brand-icons-kingdee-rules-first-agent-convention:
   en: 0c0e6074d2668b41
   zh: a7cdccaf37aa5934
@@ -43,10 +43,10 @@
   zh: 20ff33282da92c41
 /1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/client-scoped-mcp-session-tokens-page-configured-ruoyi-url:
   en: 69fc3efcc97be11b
-  zh: c5bf96f1e2b10b34
+  zh: 686f51a343a6e4d0
 /1tmt-puyuan-harness-version-notes-developers/developer-verification-checklist:
   en: 7032b3a7fdc29ec3
   zh: 82f1ca03b16d1cf4
 /1tmt-puyuan-harness-version-notes-developers/related-code-map:
   en: 7c2e1413981fa340
-  zh: 4b261f39e09bbf93
+  zh: 14f5116d78ee8c8e

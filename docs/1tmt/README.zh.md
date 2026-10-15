@@ -369,7 +369,7 @@ pnpm exec vitest run packages/client/ui-custom-workbench/tests
 
 登录流程由 Vue 驱动：`status` →（可选）后端地址 → `listOrganizations` → `wmsLogin` → `refreshSessions` → `onLoggedIn()`。成功后由 React 壳拆掉 portal。
 
-设置页「后端 / 若依」与侧栏「退出登录」仍在 `ui-pgy-login` 的 React 组件里；本轮不迁 Vue。
+设置页「后端 / 1tmt」与侧栏「退出登录」仍在 `ui-pgy-login` 的 React 组件里；本轮不迁 Vue。
 
 -----
 
@@ -422,7 +422,7 @@ Vue 侧只读 `bridge.labels`，不要在 `.vue` 里硬编码产品文案。
 - [ ] Host 侧存在 `packages/1tmt/workbench/lib/typert.remote-client.js`（Remote 已生成）
 - [ ] `dsh web`：全屏员工登录为 Element Plus（可用 DevTools 看 `.el-card` / `style#dsh-1tmt-element-plus`）
 - [ ] 登录后点「自定义工作台」：左 Vue（含采购管理 → 采购入库）、右原生对话；列表查询会 `publishSnapshot`
-- [ ] 采购入库：查单 → 打开 → 录条码 → 确认入库（需若依 MCP + 金蝶联调环境）
+- [ ] 采购入库：查单 → 打开 → 录条码 → 确认入库（需 1tmt MCP + 金蝶联调环境）
 - [ ] 在右侧对话提问「把现在列表整理成 JSON」：模型能引用演示列表（需 `1tmt-workbench-context` 已挂载）
 - [ ] 将 `1tmt-workbench-context` 设为 `disabled: true` 后：工作台仍在，但新对话不再自动带上快照摘要
 - [ ] 设置 → 内置插件中能看到 `1tmt-workbench`、`1tmt-workbench-context`、`ui-custom-workbench` 三行且为 active
@@ -441,6 +441,6 @@ Vue 侧只读 `bridge.labels`，不要在 `.vue` 里硬编码产品文案。
 - 浏览器外壳：[`packages/client/ui-custom-workbench/README.md`](../../packages/client/ui-custom-workbench/README.zh.md)
 - 对照样例 time-context：[`packages/context/time-context/README.md`](../../packages/context/time-context/README.zh.md)
 - Web Client 壳层：[`docs/subsystems/web-client.md`](../subsystems/web-client.zh.md)
-- 若依 MCP / WMS 登录集成：[`docs/1tmt-ruoyi-wms-integration.md`](../1tmt-ruoyi-wms-integration.zh.md)
+- 1tmt MCP / WMS 登录集成：[`docs/1tmt-ruoyi-wms-integration.md`](../1tmt-ruoyi-wms-integration.zh.md)
 - 集成提交说明：[`docs/1tmt-pgy-version-notes.md`](../1tmt-pgy-version-notes.zh.md)
-- 若依 MCP 工具在 RuoYi 仓库 `1tmt-kde-pgy`（与本 UI / 上下文文档分离）
+- 1tmt MCP 工具在 RuoYi 仓库 `1tmt-kde-pgy`（与本 UI / 上下文文档分离）

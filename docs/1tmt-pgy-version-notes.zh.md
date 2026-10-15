@@ -2,7 +2,7 @@
 
 [English](1tmt-pgy-version-notes.md) | 中文
 
-面向本仓库相对上游 `c288ba2`（Import DeepSeek Harness）之后的集成提交。说明每次**改了什么、代码怎么走、为什么这么改**。联调操作见 [1tmt-ruoyi-wms-integration.md](./1tmt-ruoyi-wms-integration.zh.md)。对端若依提交见 RuoYi-Vue 仓库 `docs/1tmt-PGY版本说明.md`。
+面向本仓库相对上游 `c288ba2`（Import DeepSeek Harness）之后的集成提交。说明每次**改了什么、代码怎么走、为什么这么改**。联调操作见 [1tmt-ruoyi-wms-integration.md](./1tmt-ruoyi-wms-integration.zh.md)。对端 1tmt 提交见 RuoYi-Vue 仓库 `docs/1tmt-PGY版本说明.md`。
 
 当前分支 tip：见 `1tmt-deepseek-harness-windows` 最新提交（含「客户端专属 MCP 会话令牌」）。
 
@@ -12,8 +12,8 @@
 
 | 能力 | 怎么实现的 |
 |------|------------|
-| 本机 Web 调若依 MCP | `pgy-login` 运行时动态挂载 `@deepseek-ai/dsh-mcp-client`（`serverName: 1tmt`），工具名 `mcp__1tmt__*` |
-| 业务员只配若依地址 | 页面 / 设置填 Base URL → `POST /mcp/client-sessions` 领会话令牌；关程序 `DELETE` |
+| 本机 Web 调 1tmt MCP | `pgy-login` 运行时动态挂载 `@deepseek-ai/dsh-mcp-client`（`serverName: 1tmt`），工具名 `mcp__1tmt__*` |
+| 业务员只配 1tmt 地址 | 页面 / 设置填 Base URL → `POST /mcp/client-sessions` 领会话令牌；关程序 `DELETE` |
 | 员工 WMS 登录门闩 | Host `pgyLogin` Remote + 全屏 `ui-pgy-login`；未登录拒绝 create/fork/prompt/list/search |
 | 按员工隔离本机会话 | 登录后 `sessionPersistence.bindRoot(…/employees/<orgId>__<staffNumber>/)`；首次登录迁旧共享目录 |
 | 换人登录 | 侧栏「退出登录」→ dispose Agents → `closeOpenWriters` → 绑回 baseRoot → 页面 reload |
@@ -25,7 +25,7 @@
 
 ## 按提交说明（时间正序）
 
-### `258a332` — 为 dsh web 接入若依 MCP，并提供 Windows 绿色包
+### `258a332` — 为 dsh web 接入 1tmt MCP，并提供 Windows 绿色包
 
 **改了什么**
 
@@ -34,7 +34,7 @@
 
 **逻辑**
 
-`dsh web` Host 进程内 MCP 客户端连 `http://127.0.0.1:8081/mcp`，请求头 `Authorization: Bearer …`。若依未启动时 Web 仍可打开；模型侧工具名为 `mcp__ruoyi__` + 若依原名。
+`dsh web` Host 进程内 MCP 客户端连 `http://127.0.0.1:8081/mcp`，请求头 `Authorization: Bearer …`。1tmt 未启动时 Web 仍可打开；模型侧工具名为 `mcp__ruoyi__` + 1tmt 原名。
 
 **为什么**
 
@@ -55,7 +55,7 @@
 
 **为什么**
 
-产品命名是 1TMT，与若依侧按模块拆分的工具名对齐，避免长期挂着临时 `ruoyi` 前缀。
+产品命名是 1TMT，与 1tmt 侧按模块拆分的工具名对齐，避免长期挂着临时 `ruoyi` 前缀。
 
 ---
 
@@ -87,7 +87,7 @@
 浏览器 LoginOverlay
   → remote.pgyLogin.wmsLogin
   → Host tools.execute(pgyWmsLogin)
-  → 若依 MCP → 金蝶员工校验
+  → 1tmt MCP → 金蝶员工校验
   → 进程内 loggedIn=true
   → 此后 create/prompt 才放行
 ```
@@ -100,15 +100,15 @@
 
 ---
 
-### `229e198` — 配置.cmd 补充跨机对接若依 MCP 的中文备注
+### `229e198` — 配置.cmd 补充跨机对接 1tmt MCP 的中文备注
 
 **改了什么**
 
-绿色包/安装目录里的 `配置.cmd` 注释：写清 `DSH_1TMT_MCP_URL` 在「Harness 与若依不同机」时要改成 `http://若依IP:8081/mcp`。
+绿色包/安装目录里的 `配置.cmd` 注释：写清 `DSH_1TMT_MCP_URL` 在「Harness 与 1tmt 不同机」时要改成 `http://<1tmt-IP>:8081/mcp`。
 
 **为什么**
 
-现场常见「PC 跑 Harness、服务器跑若依」，默认 `127.0.0.1` 会连错。
+现场常见「PC 跑 Harness、服务器跑 1tmt」，默认 `127.0.0.1` 会连错。
 
 ---
 
@@ -224,7 +224,7 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 
 ---
 
-### 客户端专属 MCP 会话令牌 + 页面配置若依地址
+### 客户端专属 MCP 会话令牌 + 页面配置 1tmt 地址
 
 **改了什么**
 
@@ -233,7 +233,7 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
   - `session-client.ts`：`POST/DELETE {base}/mcp/client-sessions`。
   - `index.ts`：Remote `getBackendConfig` / `setBackendConfig`；启动或改地址后签发令牌并 `ctx.plugin(mcp-client)` 热挂载；dispose / SIGTERM 时销毁会话。
 - `packages/client/ui-pgy-login`
-  - 登录前「后端配置」表单；设置页新增「后端 / 若依」区块；文案不提 Token。
+  - 登录前「后端配置」表单；设置页新增「后端 / 1tmt」区块；文案不提 Token。
 - `cordis.patch.yml`：去掉启动时写死的 `mcp-1tmt` url/headers；由 `pgy-login` 运行时挂载。
 - `desktop-1tmt`：`before-quit` 先 `SIGTERM`（给 Host 发 DELETE 的时间），超时再 `taskkill`；`配置.cmd` 改为 IT 可选预置 Base URL。
 - 文档：`README-1TMT.md`、`docs/1tmt-ruoyi-wms-integration.md`；Host 单测 `backend-config` / `pgy-login`。
@@ -253,7 +253,7 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 
 **为什么**
 
-业务员不应手填共享 MCP Token。地址可在页面配置；令牌由若依签发、Redis 记账、关程序销毁。静态 `mcp.auth-token` / `DSH_1TMT_MCP_TOKEN` 仍留给运维旧路径。
+业务员不应手填共享 MCP Token。地址可在页面配置；令牌由 1tmt 签发、Redis 记账、关程序销毁。静态 `mcp.auth-token` / `DSH_1TMT_MCP_TOKEN` 仍留给运维旧路径。
 
 ---
 
@@ -272,7 +272,7 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 | 包 / 文件 | 职责 |
 |-----------|------|
 | `packages/api/pgy-login` | Base URL、会话令牌、动态 MCP、登录 Remote、员工根、logout |
-| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「后端 / 若依」、退出按钮 |
+| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「后端 / 1tmt」、退出按钮 |
 | `packages/api/session-controller` | 未登录门闩 |
 | `packages/session/session-persistence*` | `bindRoot` / `closeOpenWriters` |
 | `packages/bundle/web-app/cordis.patch.yml` | 登录插件装配、persona（MCP 由 pgy-login 挂载） |

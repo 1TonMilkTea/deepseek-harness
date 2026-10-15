@@ -87,7 +87,7 @@ Separate connectivity pings from business MCP during integration and reduce wron
 浏览器 LoginOverlay
   → remote.pgyLogin.wmsLogin
   → Host tools.execute(pgyWmsLogin)
-  → 若依 MCP → 金蝶员工校验
+  → 1tmt MCP → 金蝶员工校验
   → 进程内 loggedIn=true
   → 此后 create/prompt 才放行
 ```
@@ -104,7 +104,7 @@ Operators must pass WMS identity before using the local Agent; installer and por
 
 **What changed**
 
-Comments in portable/install `配置.cmd`: when Harness and RuoYi are on different machines, set `DSH_1TMT_MCP_URL` to `http://若依IP:8081/mcp`.
+Comments in portable/install `配置.cmd`: when Harness and RuoYi are on different machines, set `DSH_1TMT_MCP_URL` to `http://<1tmt-IP>:8081/mcp`.
 
 **Why**
 

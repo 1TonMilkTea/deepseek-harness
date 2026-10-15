@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-Host Remote 命名空间 `pgyLogin`，覆盖若依后端 URL 配置、组织列表，以及经 MCP 工具的 WMS 员工登录。Web 遮罩通过类型化 Bridge 消费本 Remote；登录成功前会门禁 Session 创建与提问。
+Host Remote 命名空间 `pgyLogin`，覆盖 1tmt 后端 URL 配置、组织列表，以及经 MCP 工具的 WMS 员工登录。Web 遮罩通过类型化 Bridge 消费本 Remote；登录成功前会门禁 Session 创建与提问。
 
 ## 目录
 
@@ -22,7 +22,7 @@ Host Remote 命名空间 `pgyLogin`，覆盖若依后端 URL 配置、组织列�
 <a id="use-this-package"></a>
 ## 使用本包
 
-在 web-app 组合中挂载本 Host 插件及匹配的 Client remotes 条目。在调用 `listOrganizations` / `wmsLogin` 前，从登录 UI 或环境配置若依 base URL。
+在 web-app 组合中挂载本 Host 插件及匹配的 Client remotes 条目。在调用 `listOrganizations` / `wmsLogin` 前，从登录 UI 或环境配置 1tmt base URL。
 
 -----
 

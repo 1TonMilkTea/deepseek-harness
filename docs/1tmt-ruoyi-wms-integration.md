@@ -17,7 +17,7 @@ Per-commit change notes (what / how / why) live in [1tmt-pgy-version-notes.md](.
 业务员 PC
   桌面图标 Harness（Electron 窗口）
        → 后台无窗口 resources\payload\runtime\node.exe  app\lib\bin.js web --no-open   （仅 127.0.0.1）
-            │  窗口：若依根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
+            │  窗口：1tmt 根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
             │  窗口内登录：组织 / 员工编码 / 密码
             │  Host：ctx.remote.pgyLogin → 动态挂载 mcp-client → tools.execute(mcp__1tmt__…)
             ▼

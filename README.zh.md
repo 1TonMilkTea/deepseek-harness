@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-> **1TMT 现场改造（Windows 桌面 / 若依 MCP / 员工登录）**：见 **[README-1TMT.md](README-1TMT.md)**。
+> **1TMT 现场改造（Windows 桌面 / 1tmt MCP / 员工登录）**：见 **[README-1TMT.md](README-1TMT.md)**。
 
 DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的开源 agent harness（智能体框架）。
 

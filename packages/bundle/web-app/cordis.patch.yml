@@ -136,7 +136,7 @@
     - id: job-controller
       name: '@deepseek-ai/dsh-api-job-controller'
 
-    # 1TMT：页面/配置.cmd 只配若依 Base URL；本插件申请会话令牌并动态挂载 mcp-client
+    # 1TMT：页面/配置.cmd 只配 1tmt Base URL；本插件申请会话令牌并动态挂载 mcp-client
     # （serverName=1tmt）。静态 mcp.auth-token 仍留给运维旧客户端，业务员路径不用。
     - id: pgy-login
       name: '@deepseek-ai/dsh-api-pgy-login'
@@ -146,7 +146,7 @@
         clientName: harness-desktop
         mcpServerName: 1tmt
 
-    # 1TMT：采购入库 Host Remote（仅 tools.execute → 若依 MCP，不直连金蝶）
+    # 1TMT：采购入库 Host Remote（仅 tools.execute → 1tmt MCP，不直连金蝶）
     - id: pgy-pur-receive
       name: '@deepseek-ai/dsh-api-pgy-pur-receive'
       config:

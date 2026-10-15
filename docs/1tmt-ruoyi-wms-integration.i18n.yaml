@@ -4,22 +4,22 @@
 #   pnpm run verify-translation-pairing --write docs/1tmt-ruoyi-wms-integration.md
 /:
   en: 1e8b139bfbcb85ba
-  zh: d9d3477ec7ea0bf5
+  zh: c06e075ffe78dd82
 /1tmt-dsh-web-ruoyi-mcp-and-puyuan-wms-login:
   en: 8859b85c910d25a1
-  zh: 976b93d5f5097dbd
+  zh: 5d891fa1ea55b4ec
 /1tmt-dsh-web-ruoyi-mcp-and-puyuan-wms-login/runtime-relationship:
   en: 674ddc7405bdd635
   zh: 6fc6d6dc9604e86d
 /1tmt-dsh-web-ruoyi-mcp-and-puyuan-wms-login/source-changes-this-repository:
-  en: b6b24d7a4f5070c3
-  zh: e784124a060bd300
+  en: 52234606e20d3bb7
+  zh: b76059c0e0ca176e
 /1tmt-dsh-web-ruoyi-mcp-and-puyuan-wms-login/developer-machine:
   en: 2b0133ff667cc17c
   zh: cf257b4f20fc57b0
 /1tmt-dsh-web-ruoyi-mcp-and-puyuan-wms-login/windows-desktop-installer:
   en: f2d4ecaf3e8df4ff
-  zh: 7c6542924bf8162b
+  zh: 8502c4c8570f9507
 /1tmt-dsh-web-ruoyi-mcp-and-puyuan-wms-login/do-not-commit:
   en: 18ce8465c3c514c2
   zh: 33ddc7b3b0cef7c7

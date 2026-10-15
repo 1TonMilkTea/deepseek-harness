@@ -53,7 +53,7 @@ kind: "package-reference"
 <a id="known-limitations-and-deferred-work"></a>
 
 - **左侧由 Vue 拥有** — 产品 UI（含采购入库）扩展 `packages/1tmt/vue` 的 custom-workbench App；本包保持薄挂载宿主。
-- **金蝶只经若依 MCP** — Bridge / Remote 不得直连金蝶 kdsvc。
+- **金蝶只经 1tmt MCP** — Bridge / Remote 不得直连金蝶 kdsvc。
 - **固定分栏宽度** — AppFrame 使用约 50/50 分栏，无拖拽手柄。
 - **共享的面板 id 字面量** — `ui-layout` 与 `ui-workspace` 保留同一个 `custom-workbench` 字面量来识别分屏；改 id 时三个包需同时修改。
 

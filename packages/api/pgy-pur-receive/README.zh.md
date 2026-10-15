@@ -1,5 +1,5 @@
 ---
-description: "采购入库 Host Remote：仅经若依 MCP 做列表/详情/条码/仓位/提交。"
+description: "采购入库 Host Remote：仅经 1tmt MCP 做列表/详情/条码/仓位/提交。"
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-Host Remote 命名空间 `pgyPurReceive`，服务自定义工作台采购入库流程。每个方法都是对若依 MCP 工具的一一薄封装（`tools.execute`）。本包**不**打开金蝶 HTTP 客户端、**不**持有金蝶 Cookie、**不**拼接 kdsvc URL。
+Host Remote 命名空间 `pgyPurReceive`，服务自定义工作台采购入库流程。每个方法都是对 1tmt MCP 工具的一一薄封装（`tools.execute`）。本包**不**打开金蝶 HTTP 客户端、**不**持有金蝶 Cookie、**不**拼接 kdsvc URL。
 
 ## 目录
 
@@ -58,7 +58,7 @@ Host Remote 命名空间 `pgyPurReceive`，服务自定义工作台采购入库�
 
 - **无 PDA 队列 / 草稿 / 开发者模式** — 提交仅同步；失败留在确认 Dialog 可重试。
 - **DTO 拼装在 Vue** — Host 不根据扫码状态重建 `BarcodeDataList`。
-- **金蝶只经若依 MCP** — 勿在本包或兄弟包新增金蝶客户端。
+- **金蝶只经 1tmt MCP** — 勿在本包或兄弟包新增金蝶客户端。
 
 <a id="dev-note"></a>
 ### 开发备注
@@ -66,6 +66,6 @@ Host Remote 命名空间 `pgyPurReceive`，服务自定义工作台采购入库�
 <details>
 <summary>维护者工作上下文——点击展开</summary>
 
-先决：若依 `1tmt-kde-pgy` 已暴露五个非列表 MCP 与既有 `pgyListReceiveBills`。改 Java 后须重启若依再测本 Remote。
+先决：1tmt `1tmt-kde-pgy` 已暴露五个非列表 MCP 与既有 `pgyListReceiveBills`。改 Java 后须重启 1tmt 再测本 Remote。
 
 </details>

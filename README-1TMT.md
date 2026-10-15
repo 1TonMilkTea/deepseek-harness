@@ -2,7 +2,7 @@
 
 本仓库在上游 DeepSeek Harness 之上，做了现场要用的三件事：
 
-1. **连若依 MCP**：本机 Agent 调用 RuoYi 的 `/mcp`（金蝶 / 蒲公英能力）
+1. **连 1tmt MCP**：本机 Agent 调用 RuoYi 的 `/mcp`（金蝶 / 蒲公英能力）
 2. **员工登录**：组织 + 员工编码 + WMS 密码，登录后才能建会话；按员工隔离本机会话
 3. **Windows 桌面程序**：双击「Harness」打开独立窗口，不弹黑窗、不依赖浏览器
 
@@ -14,9 +14,9 @@
 
 1. 安装 `Harness-Setup-*-x64.exe`（无需管理员）
 2. 双击桌面「Harness」
-3. **首次**：在窗口填写若依根地址（可带端口），例如 `http://192.168.0.108:8081`——**不用填 Token**
+3. **首次**：在窗口填写 1tmt 根地址（可带端口），例如 `http://192.168.0.108:8081`——**不用填 Token**
 4. 保存后进入员工登录（组织 / 员工编码 / 密码）→ 使用
-5. 之后可在 **设置 → 后端 / 若依** 修改地址；改完会重新申请会话令牌并重连 MCP
+5. 之后可在 **设置 → 后端 / 1tmt** 修改地址；改完会重新申请会话令牌并重连 MCP
 
 IT 仍可在 `%LOCALAPPDATA%\Harness\配置.cmd` 预置 `DSH_1TMT_MCP_URL`（根地址或带 `/mcp`）；页面已保存的地址优先。静态 `DSH_1TMT_MCP_TOKEN` 仅运维/旧工具需要。
 
@@ -50,7 +50,7 @@ IT 仍可在 `%LOCALAPPDATA%\Harness\配置.cmd` 预置 `DSH_1TMT_MCP_URL`（根
 | `desktop-1tmt/` | Electron 桌面壳 |
 | `scripts/pack-desktop-1tmt.ts` | 打 Windows 安装包 |
 | `packages/api/pgy-login` | 后端地址、会话令牌、登录 / 退出 / 员工会话目录 |
-| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「后端 / 若依」、侧栏退出 |
+| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「后端 / 1tmt」、侧栏退出 |
 | `packages/bundle/web-app/cordis.patch.yml` | 挂上登录插件（MCP 由 pgy-login 运行时挂载） |
 
 ---
@@ -66,7 +66,7 @@ pnpm run build
 pnpm dsh web
 ```
 
-浏览器打开本机页面后：未配置地址时先填若依根地址，再走员工登录。
+浏览器打开本机页面后：未配置地址时先填 1tmt 根地址，再走员工登录。
 
 `desktop-1tmt/` **不在** pnpm workspace 里，避免打桌面壳时改动根目录 `pnpm-lock.yaml`；它单独装 Electron。根仓库的依赖以 `master` 为准。
 
