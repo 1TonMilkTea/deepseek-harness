@@ -14,7 +14,7 @@ export const zh = {
   logout: '退出登录',
   logoutShort: '退出',
   backendTitle: '后端配置',
-  backendSubtitle: '填写 1tmt 服务根地址（可带端口），例如 http://192.168.0.108:8081。无需填写令牌。',
+  backendSubtitle: '填写 harness 服务根地址（可带端口），例如 http://192.168.0.108:8081。无需填写令牌。',
   backendUrl: '1tmt 地址',
   backendUrlPlaceholder: 'http://192.168.0.108:8081',
   backendSubmit: '保存并连接',
