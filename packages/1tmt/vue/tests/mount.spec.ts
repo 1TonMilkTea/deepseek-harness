@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { CustomBridge, LoginBridge } from '../types/index.d.ts'
+import type { BridgeResult, CustomBridge, LoginBridge } from '../types/index.d.ts'
 
 const libEntry = join(dirname(fileURLToPath(import.meta.url)), '../lib/index.js')
 const hasLib = existsSync(libEntry)
@@ -40,7 +40,7 @@ describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
         backendSubmit: 'Save',
         editBackend: 'Edit',
       },
-      status: vi.fn(() => new Promise(() => {})),
+      status: vi.fn(() => new Promise<BridgeResult<{ readonly loggedIn: boolean }>>(() => {})),
       getBackendConfig: vi.fn(async () => ({
         ok: true as const,
         value: { baseUrl: 'http://127.0.0.1:8080', configured: true },
