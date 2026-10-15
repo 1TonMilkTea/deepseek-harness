@@ -4,7 +4,7 @@ English | [中文](1tmt-pgy-version-notes.zh.md)
 
 Covers integration commits in this repository after upstream `c288ba2` (Import DeepSeek Harness). For each change: **what changed, how the code runs, and why**. Day-to-day ops: [1tmt-ruoyi-wms-integration.md](./1tmt-ruoyi-wms-integration.md). Counterpart RuoYi commits: RuoYi-Vue repo `docs/1tmt-PGY版本说明.md`.
 
-Current branch tip: latest on `1tmt-deepseek-harness-windows` (includes “client-scoped MCP session tokens”).
+Current branch tip: latest on `1tmt-deepseek-harness` (includes “client-scoped MCP session tokens”).
 
 ---
 

@@ -4,7 +4,7 @@
 
 面向本仓库相对上游 `c288ba2`（Import DeepSeek Harness）之后的集成提交。说明每次**改了什么、代码怎么走、为什么这么改**。联调操作见 [1tmt-ruoyi-wms-integration.md](./1tmt-ruoyi-wms-integration.zh.md)。对端 1tmt 提交见 RuoYi-Vue 仓库 `docs/1tmt-PGY版本说明.md`。
 
-当前分支 tip：见 `1tmt-deepseek-harness-windows` 最新提交（含「客户端专属 MCP 会话令牌」）。
+当前分支 tip：见 `1tmt-deepseek-harness` 最新提交（含「客户端专属 MCP 会话令牌」）。
 
 ---
 

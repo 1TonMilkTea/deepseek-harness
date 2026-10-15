@@ -3,8 +3,8 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/1tmt-pgy-version-notes.md
 /1tmt-puyuan-harness-version-notes-developers:
-  en: 074c29c7101ef779
-  zh: e305e455a3f205b9
+  en: 2ad4ced13d6a9cc5
+  zh: c48a210d2108ff7d
 /1tmt-puyuan-harness-version-notes-developers/overview-what-shipped:
   en: e15fcf7a8aa3cd7f
   zh: 169807af3ca449db
