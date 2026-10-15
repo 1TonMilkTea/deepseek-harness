@@ -369,7 +369,7 @@ pnpm exec vitest run packages/client/ui-custom-workbench/tests
 
 登录流程由 Vue 驱动：`status` →（可选）后端地址 → `listOrganizations` → `wmsLogin` → `refreshSessions` → `onLoggedIn()`。成功后由 React 壳拆掉 portal。
 
-设置页「后端 / 1tmt」与侧栏「退出登录」仍在 `ui-pgy-login` 的 React 组件里；本轮不迁 Vue。
+设置页「harness 中台」与侧栏「退出登录」仍在 `ui-pgy-login` 的 React 组件里；本轮不迁 Vue。
 
 -----
 

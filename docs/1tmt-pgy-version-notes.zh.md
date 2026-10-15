@@ -13,7 +13,7 @@
 | 能力 | 怎么实现的 |
 |------|------------|
 | 本机 Web 调 1tmt MCP | `pgy-login` 运行时动态挂载 `@deepseek-ai/dsh-mcp-client`（`serverName: 1tmt`），工具名 `mcp__1tmt__*` |
-| 业务员只配 1tmt 地址 | 页面 / 设置填 Base URL → `POST /mcp/client-sessions` 领会话令牌；关程序 `DELETE` |
+| 业务员只配 harness 中台地址 | 页面 / 设置填 Base URL → `POST /mcp/client-sessions` 领会话令牌；关程序 `DELETE` |
 | 员工 WMS 登录门闩 | Host `pgyLogin` Remote + 全屏 `ui-pgy-login`；未登录拒绝 create/fork/prompt/list/search |
 | 按员工隔离本机会话 | 登录后 `sessionPersistence.bindRoot(…/employees/<orgId>__<staffNumber>/)`；首次登录迁旧共享目录 |
 | 换人登录 | 侧栏「退出登录」→ dispose Agents → `closeOpenWriters` → 绑回 baseRoot → 页面 reload |
@@ -224,7 +224,7 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 
 ---
 
-### 客户端专属 MCP 会话令牌 + 页面配置 1tmt 地址
+### 客户端专属 MCP 会话令牌 + 页面配置 harness 中台地址
 
 **改了什么**
 
@@ -233,7 +233,7 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
   - `session-client.ts`：`POST/DELETE {base}/mcp/client-sessions`。
   - `index.ts`：Remote `getBackendConfig` / `setBackendConfig`；启动或改地址后签发令牌并 `ctx.plugin(mcp-client)` 热挂载；dispose / SIGTERM 时销毁会话。
 - `packages/client/ui-pgy-login`
-  - 登录前「后端配置」表单；设置页新增「后端 / 1tmt」区块；文案不提 Token。
+  - 登录前「后端配置」表单；设置页新增「harness 中台」区块；文案不提 Token。
 - `cordis.patch.yml`：去掉启动时写死的 `mcp-1tmt` url/headers；由 `pgy-login` 运行时挂载。
 - `desktop-1tmt`：`before-quit` 先 `SIGTERM`（给 Host 发 DELETE 的时间），超时再 `taskkill`；`配置.cmd` 改为 IT 可选预置 Base URL。
 - 文档：`README-1TMT.md`、`docs/1tmt-ruoyi-wms-integration.md`；Host 单测 `backend-config` / `pgy-login`。
@@ -272,7 +272,7 @@ Agent 拆除时 `session/disposed` 只会**异步** `handle.close()`，原先立
 | 包 / 文件 | 职责 |
 |-----------|------|
 | `packages/api/pgy-login` | Base URL、会话令牌、动态 MCP、登录 Remote、员工根、logout |
-| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「后端 / 1tmt」、退出按钮 |
+| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「harness 中台」、退出按钮 |
 | `packages/api/session-controller` | 未登录门闩 |
 | `packages/session/session-persistence*` | `bindRoot` / `closeOpenWriters` |
 | `packages/bundle/web-app/cordis.patch.yml` | 登录插件装配、persona（MCP 由 pgy-login 挂载） |

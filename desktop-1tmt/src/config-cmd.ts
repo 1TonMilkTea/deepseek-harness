@@ -11,13 +11,13 @@ export const CONFIG_FILE_NAME = '配置.cmd'
 
 /**
  * Default configuration text, CRLF so Notepad shows the comments on separate lines.
- * 业务员主路径：在窗口内填写 1tmt 根地址；本文件仅作 IT 预置 / 开发兜底。
+ * 业务员主路径：在窗口内填写 harness 中台根地址；本文件仅作 IT 预置 / 开发兜底。
  * @returns the template body.
  */
 export function configTemplate(): string {
   return [
     '@echo off',
-    'REM ========== 可选：IT 预置 1tmt 地址（业务员也可在窗口内配置） ==========',
+    'REM ========== 可选：IT 预置 harness 中台地址（业务员也可在窗口内配置） ==========',
     'REM 页面「后端配置 / 设置 → 后端」优先；未在页面保存时才读下面变量。',
     'REM DSH_1TMT_MCP_URL 可写根地址或带 /mcp 的地址，例如：',
     'REM   set "DSH_1TMT_MCP_URL=http://192.168.0.108:8081"',

@@ -233,7 +233,7 @@ Field users want a standalone desktop app like WorkBuddy: no black console, no d
   - `session-client.ts`: `POST/DELETE {base}/mcp/client-sessions`.
   - `index.ts`: Remote `getBackendConfig` / `setBackendConfig`; issue a token and hot-mount `ctx.plugin(mcp-client)` after start or URL change; destroy the session on dispose / SIGTERM.
 - `packages/client/ui-pgy-login`
-  - Pre-login “Backend config” form; Settings “Backend / RuoYi” block; copy never mentions Token.
+  - Pre-login “Backend config” form; Settings “Harness platform” block; copy never mentions Token.
 - `cordis.patch.yml`: remove hard-coded startup `mcp-1tmt` url/headers; `pgy-login` mounts at runtime.
 - `desktop-1tmt`: `before-quit` sends `SIGTERM` first (time for Host `DELETE`), then `taskkill` on timeout; `配置.cmd` becomes an optional IT Base URL preset.
 - Docs: `README-1TMT.md`, `docs/1tmt-ruoyi-wms-integration.md`; Host unit tests `backend-config` / `pgy-login`.
@@ -272,7 +272,7 @@ Operators must not paste a shared MCP Token. The URL is page-configurable; RuoYi
 | Package / file | Role |
 |-----------|------|
 | `packages/api/pgy-login` | Base URL, session token, dynamic MCP, login Remote, employee root, logout |
-| `packages/client/ui-pgy-login` | Pre/post-login backend config, login overlay, Settings “Backend / RuoYi”, sign-out |
+| `packages/client/ui-pgy-login` | Pre/post-login backend config, login overlay, Settings “Harness platform”, sign-out |
 | `packages/api/session-controller` | Logged-out gate |
 | `packages/session/session-persistence*` | `bindRoot` / `closeOpenWriters` |
 | `packages/bundle/web-app/cordis.patch.yml` | Login plugin wiring, persona (MCP mounted by pgy-login) |

@@ -17,7 +17,7 @@ Per-commit change notes (what / how / why) live in [1tmt-pgy-version-notes.md](.
 业务员 PC
   桌面图标 Harness（Electron 窗口）
        → 后台无窗口 resources\payload\runtime\node.exe  app\lib\bin.js web --no-open   （仅 127.0.0.1）
-            │  窗口：1tmt 根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
+            │  窗口：harness 中台根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
             │  窗口内登录：组织 / 员工编码 / 密码
             │  Host：ctx.remote.pgyLogin → 动态挂载 mcp-client → tools.execute(mcp__1tmt__…)
             ▼
@@ -37,7 +37,7 @@ One process per person. Do not bind `dsh web` to `0.0.0.0`. Operators **configur
 |---|---|
 | `packages/api/pgy-login` | Host Remote: Base URL, session-token issue/destroy, dynamic MCP mount, orgs, WMS login, `logout` |
 | `packages/api/pgy-pur-receive` | Host Remote: purchase inbound (list/view/barcode/stock/submit) via RuoYi MCP only; never Kingdee direct |
-| `packages/client/ui-pgy-login` | Pre-login backend config, fullscreen login, Settings “Backend / RuoYi”, sidebar sign-out |
+| `packages/client/ui-pgy-login` | Pre-login backend config, fullscreen login, Settings “Harness platform”, sidebar sign-out |
 | `packages/api/session-controller` | Rejects create / fork / prompt / list / search when logged out (profiles without `pgyLogin` are not gated) |
 | `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`: switch to the employee directory after login |
 | `packages/bundle/web-app/cordis.patch.yml` | Mounts login Remote / UI; MCP is mounted at runtime by `pgy-login`; persona requires rule MCP first |
@@ -75,7 +75,7 @@ Install and run:
 - Per-user install (default `%LOCALAPPDATA%\Programs\Harness`), no admin, unsigned; choose “Run anyway” if Windows warns about an unknown publisher.
 - Double-click desktop “Harness”: splash first, then the same window opens the login page when `dsh web` is ready; no console window, no system browser. Only one instance.
 - User data is separate from the install dir, fixed at `%LOCALAPPDATA%\Harness`: `配置.cmd` (optional IT preset), `data\` (sessions, settings, `1tmt-backend.json` = `DSH_HOME`), `logs\host.log`. Upgrade/uninstall leave these alone.
-- Operators set the RuoYi root URL in the window (Settings → Backend / RuoYi can change it); on quit the Host tries to `DELETE` the session token.
+- Operators set the Harness platform root URL in the window (Settings → Harness platform can change it); on quit the Host tries to `DELETE` the session token.
 - Background start failure or timeout shows a dialog that can open the config file or log directory.
 
 Upgrading from the old layout (`启动.bat` / Inno installer): the old uninstaller removes its `配置.cmd`; back up `%LOCALAPPDATA%\Harness\配置.cmd`, uninstall the old build, install the new one, and restore that file; `data\` is untouched.

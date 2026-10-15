@@ -17,7 +17,7 @@ kind: "reference"
 业务员 PC
   桌面图标 Harness（Electron 窗口）
        → 后台无窗口 resources\payload\runtime\node.exe  app\lib\bin.js web --no-open   （仅 127.0.0.1）
-            │  窗口：1tmt 根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
+            │  窗口：harness 中台根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
             │  窗口内登录：组织 / 员工编码 / 密码
             │  Host：ctx.remote.pgyLogin → 动态挂载 mcp-client → tools.execute(mcp__1tmt__…)
             ▼
@@ -37,7 +37,7 @@ kind: "reference"
 |---|---|
 | `packages/api/pgy-login` | Host Remote：Base URL、会话令牌签发/销毁、动态挂载 MCP、拉组织、WMS 登录、`logout` |
 | `packages/api/pgy-pur-receive` | Host Remote：采购入库（列表/View/条码/仓位/提交），仅 `tools.execute` → 1tmt MCP，不直连金蝶 |
-| `packages/client/ui-pgy-login` | 登录前「后端配置」、全屏登录、设置「后端 / 1tmt」、侧栏退出 |
+| `packages/client/ui-pgy-login` | 登录前「后端配置」、全屏登录、设置「harness 中台」、侧栏退出 |
 | `packages/api/session-controller` | 未登录时拒绝 create / fork / prompt / list / search（无 `pgyLogin` 服务的 profile 不拦） |
 | `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`：登录后切到员工目录 |
 | `packages/bundle/web-app/cordis.patch.yml` | 挂登录 Remote / UI；MCP 由 `pgy-login` 运行时挂载；persona 强制先调规则 MCP |
@@ -75,7 +75,7 @@ pnpm run pack:desktop-1tmt
 - 安装包按用户安装（默认 `%LOCALAPPDATA%\Programs\Harness`），无需管理员，未签名，Windows 提示未知发布者时选「仍要运行」。
 - 双击桌面「Harness」：先显示启动页，后台 `dsh web` 就绪后在同一窗口打开登录页；不弹黑窗、不开浏览器。只允许运行一个实例。
 - 用户数据与安装目录分开，固定在 `%LOCALAPPDATA%\Harness`：`配置.cmd`（IT 可选预置地址）、`data\`（会话、设置、`1tmt-backend.json`，即 `DSH_HOME`）、`logs\host.log`。升级或卸载不会动这三项。
-- 业务员主路径在窗口填写 1tmt 根地址（设置 → 后端 / 1tmt 可改）；关程序时尽量 `DELETE` 销毁会话令牌。
+- 业务员主路径在窗口填写 harness 中台根地址（设置 → harness 中台 可改）；关程序时尽量 `DELETE` 销毁会话令牌。
 - 后台启动失败或超时会弹窗，可直接打开配置文件或日志目录。
 
 从旧版（`启动.bat` / Inno 安装包）升级：旧卸载程序会删掉它装的 `配置.cmd`，先备份 `%LOCALAPPDATA%\Harness\配置.cmd`，卸载旧版后再装新版并放回该文件；`data\` 不受影响。

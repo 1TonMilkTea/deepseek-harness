@@ -369,7 +369,7 @@ pnpm exec vitest run packages/client/ui-custom-workbench/tests
 
 Vue drives the flow: `status` → (optional) backend URL → `listOrganizations` → `wmsLogin` → `refreshSessions` → `onLoggedIn()`. The React shell tears down the portal on success.
 
-Settings “backend / RuoYi” and sidebar sign-out stay in `ui-pgy-login` React components; this cut does not move them to Vue.
+Settings “Harness platform” and sidebar sign-out stay in `ui-pgy-login` React components; this cut does not move them to Vue.
 
 -----
 
