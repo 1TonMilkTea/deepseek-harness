@@ -186,6 +186,9 @@
     "desktop-1tmt/src/host-output.ts",
     "apps/desktop-host/tests/**/*.ts",
     "benchmarks/**/*.ts",
+    // Pure helper under the Vite-owned 1tmt-vue package; listed so host-side
+    // packages/1tmt/vue/tests/stk-input.spec.ts can import it under project references.
+    "packages/1tmt/vue/src/apps/custom-workbench/stk-input.ts",
     "packages/*/*/tests/**/*.ts",
     "packages/experimental/claude-code-mods/examples/*/index.ts",
     "packages/experimental/inspector/scripts/**/*.ts",
