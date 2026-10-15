@@ -28,8 +28,21 @@ async function bench() {
     publishSnapshot: vi.fn(async () => ({ ok: true, value: { hash: 'x', updatedAt: 1 } })),
     clearSnapshot: vi.fn(async () => ({ ok: true, value: undefined })),
   }
-  ctx.provide('remote', { tmtWorkbench } as never)
+  const pgyLogin = {
+    status: vi.fn(async () => ({ ok: true, value: { loggedIn: true } })),
+  }
+  const pgyPurReceive = {
+    listBills: vi.fn(async () => ({ ok: true, value: { status: 'ok', rows: [] } })),
+    viewBill: vi.fn(async () => ({ ok: true, value: {} })),
+    entityOutputs: vi.fn(async () => ({ ok: true, value: { rows: [] } })),
+    getBarcode: vi.fn(async () => ({ ok: true, value: {} })),
+    getStockInfo: vi.fn(async () => ({ ok: true, value: {} })),
+    submitReport: vi.fn(async () => ({ ok: true, value: {} })),
+  }
+  ctx.provide('remote', { tmtWorkbench, pgyLogin, pgyPurReceive } as never)
   ctx.provide('remote.tmtWorkbench', tmtWorkbench as never)
+  ctx.provide('remote.pgyLogin', pgyLogin as never)
+  ctx.provide('remote.pgyPurReceive', pgyPurReceive as never)
   const slots = ctx.get('slots') as SlotRegistry
   slots.register(
     {
@@ -54,7 +67,14 @@ describe('ui-custom-workbench apply', () => {
   })
 
   it('declares services and registers the sidebar entry and main page', async () => {
-    expect(inject).toEqual(['slots', 'locale', 'remote', 'remote.tmtWorkbench'])
+    expect(inject).toEqual([
+      'slots',
+      'locale',
+      'remote',
+      'remote.tmtWorkbench',
+      'remote.pgyLogin',
+      'remote.pgyPurReceive',
+    ])
     const b = await bench()
     await b.ctx.plugin({ inject: [...inject], apply }).await()
     const main = b.slots.entries('main')[0]

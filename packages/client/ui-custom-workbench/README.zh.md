@@ -32,7 +32,8 @@ kind: "package-reference"
 
 - 浏览器端 `apply` 以 effect 方式注册两个槽位条目：`sidebar.panellist`（图标与文案）和 key 为 `custom-workbench` 的 `main` 条目（由 `CustomWorkbenchPage` 渲染）。插件卸载时两者一并撤销，侧栏入口随之消失。
 - 当 `activePanelId` 等于 `SPLIT_WITH_CONVERSATION_PANEL_ID` 时，AppFrame 并排渲染 `custom-workbench` 与 `conversation` 两个 main 条目；用户切换会话时，`ui-workspace` 导航保留这一分屏。
-- `CustomWorkbenchPage` 用 `mountCustomWorkbench(el, bridge)` 挂载 Vue 岛屿，用 `unmountCustomWorkbench(el)` 销毁。Bridge 携带本地化 `labels` 以及 `publishSnapshot` / `clearSnapshot`，后两者调用 `ctx.remote.tmtWorkbench`，并把 Remote 失败折叠为 `{ ok: false, error: { message } }`。
+- `CustomWorkbenchPage` 用 `mountCustomWorkbench(el, bridge)` 挂载 Vue 岛屿，用 `unmountCustomWorkbench(el)` 销毁。Bridge 携带本地化 `labels`、`tmtWorkbench` 的 `publishSnapshot` / `clearSnapshot`，以及 `pgyLogin` / `pgyPurReceive` 的采购入库方法；Remote 失败折叠为 `{ ok: false, error: { message } }`。
+- **侧栏只注册「自定义工作台」一个入口**；采购管理 → 采购入库等业务导航写在 Vue 工作台内部，禁止再加 `sidebar.panellist`。
 
 完整的数据路径、生命周期与各行关闭后的效果见 [docs/1tmt](../../../docs/1tmt/README.zh.md#custom-workbench-overview)。
 
@@ -51,7 +52,8 @@ kind: "package-reference"
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **左侧由 Vue 拥有** — 产品 UI 扩展 `packages/1tmt/vue` 的 custom-workbench App；本包保持薄挂载宿主。
+- **左侧由 Vue 拥有** — 产品 UI（含采购入库）扩展 `packages/1tmt/vue` 的 custom-workbench App；本包保持薄挂载宿主。
+- **金蝶只经若依 MCP** — Bridge / Remote 不得直连金蝶 kdsvc。
 - **固定分栏宽度** — AppFrame 使用约 50/50 分栏，无拖拽手柄。
 - **共享的面板 id 字面量** — `ui-layout` 与 `ui-workspace` 保留同一个 `custom-workbench` 字面量来识别分屏；改 id 时三个包需同时修改。
 

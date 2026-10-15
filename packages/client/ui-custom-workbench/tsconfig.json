@@ -10,6 +10,8 @@
   "references": [
     { "path": "../../../vendor/cordis" },
     { "path": "../../1tmt/workbench/tsconfig.client.json" },
+    { "path": "../../api/pgy-login/tsconfig.client.json" },
+    { "path": "../../api/pgy-pur-receive/tsconfig.client.json" },
     { "path": "../../api/remotes/tsconfig.client.json" },
     { "path": "../../typert/protocol" },
     { "path": "../locale/tsconfig.client.json" },

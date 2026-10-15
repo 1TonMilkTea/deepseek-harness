@@ -15,9 +15,9 @@ vi.mock('@deepseek-ai/dsh-1tmt-vue', () => ({
     el.setAttribute('data-custom-workbench', '')
     const title = document.createElement('h1')
     title.textContent = bridge.labels.title
-    const intro = document.createElement('p')
-    intro.textContent = bridge.labels.intro
-    el.replaceChildren(title, intro)
+    const menu = document.createElement('p')
+    menu.textContent = bridge.labels.menuPurReceive
+    el.replaceChildren(title, menu)
   },
   unmountCustomWorkbench: (el: HTMLElement) => {
     unmountCustomWorkbench(el)
@@ -32,30 +32,41 @@ afterEach(() => {
 })
 
 describe('CustomWorkbenchPage', () => {
-  it('mounts the Vue custom workbench with labels and snapshot bridge', async () => {
+  it('mounts the Vue custom workbench with labels and purchase-inbound bridge', async () => {
     const publishSnapshot = vi.fn(async () => ({
       ok: true as const,
       value: { hash: 'h1', updatedAt: 1 },
     }))
     const clearSnapshot = vi.fn(async () => ({ ok: true as const, value: undefined }))
+    const getEmployee = vi.fn(async () => ({ ok: true as const, value: null }))
+    const listBills = vi.fn(async () => ({ ok: true as const, value: { status: 'ok', rows: [] } }))
+    const viewBill = vi.fn(async () => ({ ok: true as const, value: {} }))
+    const entityOutputs = vi.fn(async () => ({ ok: true as const, value: { rows: [] } }))
+    const getBarcode = vi.fn(async () => ({ ok: true as const, value: {} }))
+    const getStockInfo = vi.fn(async () => ({ ok: true as const, value: {} }))
+    const submitReport = vi.fn(async () => ({ ok: true as const, value: {} }))
     const props = {
       t: (key: keyof typeof zh) => zh[key],
       publishSnapshot,
       clearSnapshot,
+      getEmployee,
+      listBills,
+      viewBill,
+      entityOutputs,
+      getBarcode,
+      getStockInfo,
+      submitReport,
     } as CustomWorkbenchPageProps
     const { container, unmount, getByText } = render(<CustomWorkbenchPage {...props} />)
     await waitFor(() => { expect(mountCustomWorkbench).toHaveBeenCalled() })
     expect(container.querySelector('[data-custom-workbench-host]')).not.toBeNull()
     expect(getByText(zh.title)).toBeTruthy()
-    expect(getByText(zh.intro)).toBeTruthy()
+    expect(getByText(zh.menuPurReceive)).toBeTruthy()
     const bridge = mountCustomWorkbench.mock.calls[0]?.[1]
-    expect(bridge?.labels).toEqual({
-      title: zh.title,
-      intro: zh.intro,
-      republish: zh.republish,
-    })
-    expect(typeof bridge?.publishSnapshot).toBe('function')
-    expect(typeof bridge?.clearSnapshot).toBe('function')
+    expect(bridge?.labels.title).toBe(zh.title)
+    expect(bridge?.labels.menuPurReceive).toBe(zh.menuPurReceive)
+    expect(typeof bridge?.listBills).toBe('function')
+    expect(typeof bridge?.submitReport).toBe('function')
     unmount()
     expect(unmountCustomWorkbench).toHaveBeenCalled()
   })

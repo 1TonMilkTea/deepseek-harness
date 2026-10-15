@@ -32,7 +32,8 @@ Ship it in the web-app composition (`cordis.patch.yml`, row id `ui-custom-workbe
 
 - The browser `apply` registers two slot entries as effects: `sidebar.panellist` (icon and label) and the keyed `main` entry `custom-workbench` rendered by `CustomWorkbenchPage`. Disposing the plugin removes both, so the sidebar entry disappears.
 - When `activePanelId` equals `SPLIT_WITH_CONVERSATION_PANEL_ID`, AppFrame renders the `custom-workbench` and `conversation` main entries side by side; `ui-workspace` navigation keeps that split while the user switches conversations.
-- `CustomWorkbenchPage` mounts the Vue island with `mountCustomWorkbench(el, bridge)` and tears it down with `unmountCustomWorkbench(el)`. The Bridge carries localized `labels` plus `publishSnapshot` / `clearSnapshot`, which call `ctx.remote.tmtWorkbench` and fold Remote failures into `{ ok: false, error: { message } }`.
+- `CustomWorkbenchPage` mounts the Vue island with `mountCustomWorkbench(el, bridge)` and tears it down with `unmountCustomWorkbench(el)`. The Bridge carries localized `labels`, `tmtWorkbench` `publishSnapshot` / `clearSnapshot`, and purchase-inbound methods from `pgyLogin` / `pgyPurReceive`; Remote failures fold into `{ ok: false, error: { message } }`.
+- **Sidebar registers only the Custom Workbench entry**; Purchase → Purchase inbound navigation lives inside the Vue workbench. Do not add more `sidebar.panellist` rows for 1tmt modules.
 
 [docs/1tmt](../../../docs/1tmt/README.md#custom-workbench-overview) covers the full data path, lifecycle, and the effect of disabling each row.
 
@@ -51,7 +52,8 @@ None; this package neither assembles nor sends a provider request.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **Left pane is Vue-owned** — extend the `packages/1tmt/vue` custom-workbench App for product UI; this package stays a thin mount host.
+- **Left pane is Vue-owned** — extend the `packages/1tmt/vue` custom-workbench App for product UI (including purchase inbound); this package stays a thin mount host.
+- **Kingdee only via RuoYi MCP** — Bridge / Remote must not call Kingdee kdsvc directly.
 - **Fixed split width** — AppFrame uses ≈50/50 panes without a drag handle.
 - **Shared panel id literal** — `ui-layout` and `ui-workspace` keep the same `custom-workbench` literal to recognize the split; renaming the id updates all three packages together.
 
