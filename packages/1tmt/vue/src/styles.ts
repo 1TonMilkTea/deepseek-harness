@@ -8,7 +8,11 @@ import customWorkbenchCss from './apps/custom-workbench/app.css?inline'
  * @param css - raw CSS text
  */
 function ensureStyle(id: string, css: string): void {
-  if (document.getElementById(id) !== null) return
+  const existing = document.getElementById(id)
+  if (existing !== null) {
+    if (existing.textContent !== css) existing.textContent = css
+    return
+  }
   const el = document.createElement('style')
   el.id = id
   el.textContent = css

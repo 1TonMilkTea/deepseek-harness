@@ -376,8 +376,8 @@ pnpm exec vitest run packages/client/ui-custom-workbench/tests
 <a id="edit-the-custom-workbench"></a>
 ## 改自定义工作台
 
-1. 业务 UI 写在 `packages/1tmt/vue/src/apps/custom-workbench/`（`App.vue`、`stk-input.ts`、CSS）。**新业务模块只加工作台内左侧菜单**，不要再注册 `sidebar.panellist`。
-2. 侧栏只保留「自定义工作台」一个 1tmt 业务入口；点开后 AppFrame 左右分屏（面板 id = `custom-workbench`，原理见 [原理总览](#custom-workbench-overview)）。采购管理 → 采购入库在工作台内部。
+1. 业务 UI 写在 `packages/1tmt/vue/src/apps/custom-workbench/`（`App.vue`、`stk-input.ts`、CSS）。**新业务模块只加工作台首页图标入口**（点图标整页进入业务，类似 RuoYi-App 工作台），不要再注册 `sidebar.panellist`。
+2. 侧栏只保留「自定义工作台」一个 1tmt 业务入口；点开后 AppFrame 左右分屏（面板 id = `custom-workbench`，原理见 [原理总览](#custom-workbench-overview)）。默认是图标首页，点「采购入库」进入分段页：主列表、单据明细一、单据明细二。条码按收料单内码和分录内码匹配并选中明细行。
 3. 侧栏入口文案/图标：`packages/client/ui-custom-workbench/src/client/locales.ts`、`CustomWorkbenchIcon.tsx`。
 4. Host 能力经 Bridge：`publishSnapshot` / `clearSnapshot`（`tmtWorkbench`）以及采购入库 `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport`（`pgyPurReceive`，仅 MCP）。
 5. 列表或单据变化后调用 `bridge.publishSnapshot(...)`，对话侧才会在下一轮 pre-step 读到（原理见上文「工作台快照插件」）。

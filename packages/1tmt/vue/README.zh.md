@@ -31,7 +31,7 @@ React 宿主导入构建后的 `lib/index.js` 入口：
 - `mountLogin(el, bridge)` / `unmountLogin(el)`
 - `mountCustomWorkbench(el, bridge)` / `unmountCustomWorkbench(el)`
 
-`LoginBridge` 暴露 `status`、`getBackendConfig`、`setBackendConfig`、`listOrganizations`、`wmsLogin`、`refreshSessions`、`onLoggedIn` 与 `labels`。`CustomWorkbenchBridge` 包含 `labels`、`publishSnapshot` / `clearSnapshot`，以及采购入库 `getEmployee` / `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport`（经 Host Remote → 1tmt MCP，不直连金蝶）。新业务模块只加工作台内左侧菜单，勿再注册侧栏按钮。
+`LoginBridge` 暴露 `status`、`getBackendConfig`、`setBackendConfig`、`listOrganizations`、`wmsLogin`、`refreshSessions`、`onLoggedIn` 与 `labels`。`CustomWorkbenchBridge` 包含 `labels`、`publishSnapshot` / `clearSnapshot`，以及采购入库 `getEmployee` / `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport`（经 Host Remote → 1tmt MCP，不直连金蝶）。新业务模块只加工作台首页图标入口，勿再注册侧栏按钮。
 
 Element Plus 为 MIT 许可，作为本包的普通 npm 依赖引入。
 

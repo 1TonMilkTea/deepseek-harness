@@ -23,6 +23,8 @@ function workbenchLabels(): CustomWorkbenchBridge['labels'] {
     query: 'Search',
     open: 'Open',
     back: 'Back',
+    backHome: 'Home',
+    backStep: 'Up',
     barcode: 'Barcode',
     barcodePlaceholder: 'code',
     stockCode: 'Stock',
@@ -36,6 +38,15 @@ function workbenchLabels(): CustomWorkbenchBridge['labels'] {
     loading: 'Loading',
     emptyList: 'Empty list',
     emptyEntries: 'Empty entries',
+    segList: 'List',
+    segEntries: 'Lines',
+    segBarcodes: 'Barcodes',
+    openBillFirst: 'Open a bill',
+    noSelection: 'Select a line',
+    selectedPrefix: 'Selected',
+    lastInput: 'Last',
+    unmatchedEntry: 'No match',
+    barcodeMissing: 'Missing barcode',
   }
 }
 
@@ -120,6 +131,11 @@ describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
     mountCustomWorkbench(el, bridge)
     expect(el.querySelector('[data-custom-workbench]')).not.toBeNull()
     expect(el.textContent).toContain('Custom')
+    expect(el.querySelector('[data-workbench-entry="pur-receive"]')).not.toBeNull()
+    expect(listBills).not.toHaveBeenCalled()
+    const entry = el.querySelector('[data-workbench-entry="pur-receive"]')
+    expect(entry).not.toBeNull()
+    entry?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     await vi.waitFor(() => { expect(listBills).toHaveBeenCalled() })
     unmountCustomWorkbench(el)
     expect(clearSnapshot).toHaveBeenCalled()

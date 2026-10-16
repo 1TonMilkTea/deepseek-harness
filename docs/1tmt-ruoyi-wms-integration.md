@@ -46,7 +46,7 @@ One process per person. Do not bind `dsh web` to `0.0.0.0`. Operators **configur
 
 Public MCP tool names: `mcp__1tmt__pgyListOrganizations`, `mcp__1tmt__pgyWmsLogin`, `mcp__1tmt__pgyKdeEnterpriseApiRules`, `mcp__1tmt__pgyKdeExecuteBillQuery`, `mcp__1tmt__pgyListReceiveBills`, `mcp__1tmt__pgyKdeViewBill`, `mcp__1tmt__pgyGetPurReceiveEntityOutputs`, `mcp__1tmt__pgyGetBarcodeByNumber`, `mcp__1tmt__pgyGetStockInfoByNumber`, `mcp__1tmt__pgySubmitStkInStockRecordReport`. Installer users mainly set the address in the window; `配置.cmd` is an optional IT preset.
 
-To query receive-bill notifications: call `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)` first, then `pgyListReceiveBills` (internally a standard ExecuteBillQuery). For other unregistered bills: rules → `pgyKdeExecuteBillQuery`. Purchase inbound Web lives under Custom Workbench → Purchase → Purchase inbound, through the `pgyPurReceive` Remote (Harness must not call Kingdee directly).
+To query receive-bill notifications: call `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)` first, then `pgyListReceiveBills` (internally a standard ExecuteBillQuery). For other unregistered bills: rules → `pgyKdeExecuteBillQuery`. Purchase inbound Web: tap the Purchase inbound icon on the Custom Workbench home screen to enter the list full-page, through the `pgyPurReceive` Remote (Harness must not call Kingdee directly).
 
 RuoYi-side tools and Redis notes live in the RuoYi-Vue repo under `docs/Harness-PGY-WMS集成.md`. MCP token filters: `docs/Harness连接MCP改动说明.md` in that repo.
 

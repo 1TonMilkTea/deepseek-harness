@@ -376,8 +376,8 @@ Settings “Harness platform” and sidebar sign-out stay in `ui-pgy-login` Reac
 <a id="edit-the-custom-workbench"></a>
 ## Edit the Custom Workbench
 
-1. Put business UI in `packages/1tmt/vue/src/apps/custom-workbench/` (`App.vue`, `stk-input.ts`, CSS). **Add new modules only in the workbench left menu**; do not register more `sidebar.panellist` entries.
-2. The sidebar keeps a single 1tmt business entry, Custom Workbench; AppFrame splits left/right (panel id = `custom-workbench`; see [how it works](#custom-workbench-overview)). Purchase → Purchase inbound lives inside the workbench.
+1. Put business UI in `packages/1tmt/vue/src/apps/custom-workbench/` (`App.vue`, `stk-input.ts`, CSS). **Add new modules only as home-screen icon entries** (tap an icon to enter the module full-page, like the RuoYi-App workbench); do not register more `sidebar.panellist` entries.
+2. The sidebar keeps a single 1tmt business entry, Custom Workbench; AppFrame splits left/right (panel id = `custom-workbench`; see [how it works](#custom-workbench-overview)). The workbench opens on an icon home screen; tap Purchase inbound to enter segmented pages (bill list, lines, barcodes). A barcode matches by receive-bill id and entry id, then selects that line.
 3. Sidebar label/icon: `packages/client/ui-custom-workbench/src/client/locales.ts`, `CustomWorkbenchIcon.tsx`.
 4. Host capabilities via Bridge: `publishSnapshot` / `clearSnapshot` (`tmtWorkbench`) and purchase-inbound `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport` (`pgyPurReceive`, MCP only).
 5. Call `bridge.publishSnapshot(...)` after list/bill changes so the next pre-step can see them (see “Workbench snapshot plugins” above).

@@ -64,6 +64,8 @@ export interface CustomWorkbenchLabels {
   readonly query: string
   readonly open: string
   readonly back: string
+  readonly backHome: string
+  readonly backStep: string
   readonly barcode: string
   readonly barcodePlaceholder: string
   readonly stockCode: string
@@ -77,6 +79,15 @@ export interface CustomWorkbenchLabels {
   readonly loading: string
   readonly emptyList: string
   readonly emptyEntries: string
+  readonly segList: string
+  readonly segEntries: string
+  readonly segBarcodes: string
+  readonly openBillFirst: string
+  readonly noSelection: string
+  readonly selectedPrefix: string
+  readonly lastInput: string
+  readonly unmatchedEntry: string
+  readonly barcodeMissing: string
 }
 
 /** JSON-scalar cell used in list rows and form fields. */

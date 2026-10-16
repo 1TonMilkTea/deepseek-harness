@@ -11,6 +11,8 @@ export const zh = {
   query: '查询',
   open: '打开',
   back: '返回列表',
+  backHome: '返回工作台',
+  backStep: '返回上一级',
   barcode: '条码',
   barcodePlaceholder: '手工录入条码后回车',
   stockCode: '仓位码',
@@ -24,6 +26,15 @@ export const zh = {
   loading: '加载中…',
   emptyList: '暂无收料通知单',
   emptyEntries: '暂无明细，请确认单据已审核',
+  segList: '主列表',
+  segEntries: '单据明细一',
+  segBarcodes: '单据明细二',
+  openBillFirst: '请先打开一张收料通知单',
+  noSelection: '请先选中一条收料明细',
+  selectedPrefix: '已选中',
+  lastInput: '上一次录入',
+  unmatchedEntry: '未匹配到单据明细',
+  barcodeMissing: '未查询到条码，请先选中明细后手工录入',
 } as const
 
 /** English dictionary, key-identical to the Chinese source of truth. */
@@ -37,6 +48,8 @@ export const en: Record<CustomWorkbenchKey, string> = {
   query: 'Search',
   open: 'Open',
   back: 'Back to list',
+  backHome: 'Back to workbench',
+  backStep: 'Back one level',
   barcode: 'Barcode',
   barcodePlaceholder: 'Enter barcode and press Enter',
   stockCode: 'Stock code',
@@ -50,6 +63,15 @@ export const en: Record<CustomWorkbenchKey, string> = {
   loading: 'Loading…',
   emptyList: 'No receive bills',
   emptyEntries: 'No entries; confirm the bill is approved',
+  segList: 'Bill list',
+  segEntries: 'Bill lines',
+  segBarcodes: 'Barcodes',
+  openBillFirst: 'Open a receive bill first',
+  noSelection: 'Select a receive line first',
+  selectedPrefix: 'Selected',
+  lastInput: 'Last entry',
+  unmatchedEntry: 'No matching bill line',
+  barcodeMissing: 'Barcode not found; select a line and enter it manually',
 }
 
 /** Locale keys owned by this plugin. */

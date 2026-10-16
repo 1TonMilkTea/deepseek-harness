@@ -33,7 +33,7 @@ Ship it in the web-app composition (`cordis.patch.yml`, row id `ui-custom-workbe
 - The browser `apply` registers two slot entries as effects: `sidebar.panellist` (icon and label) and the keyed `main` entry `custom-workbench` rendered by `CustomWorkbenchPage`. Disposing the plugin removes both, so the sidebar entry disappears.
 - When `activePanelId` equals `SPLIT_WITH_CONVERSATION_PANEL_ID`, AppFrame renders the `custom-workbench` and `conversation` main entries side by side; `ui-workspace` navigation keeps that split while the user switches conversations.
 - `CustomWorkbenchPage` mounts the Vue island with `mountCustomWorkbench(el, bridge)` and tears it down with `unmountCustomWorkbench(el)`. The Bridge carries localized `labels`, `tmtWorkbench` `publishSnapshot` / `clearSnapshot`, and purchase-inbound methods from `pgyLogin` / `pgyPurReceive`; Remote failures fold into `{ ok: false, error: { message } }`.
-- **Sidebar registers only the Custom Workbench entry**; Purchase → Purchase inbound navigation lives inside the Vue workbench. Do not add more `sidebar.panellist` rows for 1tmt modules.
+- **Sidebar registers only the Custom Workbench entry**; modules open from home-screen icons inside the Vue workbench (full-page after tap). Do not add more `sidebar.panellist` rows for 1tmt modules.
 
 [docs/1tmt](../../../docs/1tmt/README.md#custom-workbench-overview) covers the full data path, lifecycle, and the effect of disabling each row.
 
