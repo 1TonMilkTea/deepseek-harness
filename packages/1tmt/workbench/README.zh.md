@@ -46,7 +46,7 @@ Host Remote 命名空间 `tmtWorkbench`，保存 1tmt 自定义工作台 Vue 岛
 <a id="known-limitations-and-deferred-work"></a>
 
 - **仅进程内** — 快照不随 Host 重启保留，本轮也不按 Session 分桶。
-- **尚无只读 tool** — 全量行数据走 workbench-context 可选的 `injectFullRows`；专用读取 tool 延期。
+- **模型读取** — 全量行数据由 workbench-context 的 `injectFullRows` 注入；按需读取走同包的 `get_custom_workbench_snapshot` tool。
 
 <a id="dev-note"></a>
 ### 开发备注

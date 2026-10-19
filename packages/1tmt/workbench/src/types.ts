@@ -17,10 +17,15 @@ export interface CustomWorkbenchSnapshot {
   readonly kind: CustomWorkbenchKind
   /** Short human title used in the model-facing summary. */
   readonly title: string
-  /** List rows when `kind` is `list`; otherwise empty. */
+  /** List rows when `kind` is `list`; entry rows when `kind` is `form`. */
   readonly rows: readonly CustomWorkbenchRow[]
   /** Open form fields when `kind` is `form`. */
   readonly form?: CustomWorkbenchRow
+  /**
+   * Scanned barcode lines when `kind` is `form` (采购入库「单据明细二」数据源).
+   * Each row is flat: entryId, material, barcode, qty.
+   */
+  readonly barcodes?: readonly CustomWorkbenchRow[]
 }
 
 /** Receipt after Host accepts a published snapshot. */

@@ -1,6 +1,7 @@
 /**
  * Opt-in custom workbench context. Eligible steps append a durable,
  * source-attributed summary of the latest Vue custom workbench snapshot.
+ * Also registers a model-facing read tool over the same Host store.
  *
  * @module @deepseek-ai/dsh-1tmt-workbench-context
  */
@@ -11,6 +12,8 @@ import { z as zod } from 'zod'
 import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { ContextFormed } from '@deepseek-ai/dsh-llm'
+import { defineTool } from '@deepseek-ai/dsh-tools'
+import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { StoredCustomWorkbenchSnapshot } from '@deepseek-ai/dsh-1tmt-workbench'
 import type {} from '@deepseek-ai/dsh-1tmt-workbench'
 import type {} from '@deepseek-ai/dsh-session-projection'
@@ -31,8 +34,11 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
 /** Cordis plugin name used by loader diagnostics and message source kind. */
 export const name = '1tmt-workbench-context'
 
-/** Same-process snapshot store plus projection fold for injection scheduling. */
-export const inject = ['agents', 'sessionProjections', 'tmtWorkbench']
+/** Same-process snapshot store, tools registry, and projection fold. */
+export const inject = ['agents', 'sessionProjections', 'tmtWorkbench', 'tools']
+
+/** Model-facing tool name for reading the latest custom workbench snapshot. */
+export const GET_CUSTOM_WORKBENCH_SNAPSHOT = 'get_custom_workbench_snapshot'
 
 const stateSchema = zod.object({
   /** Hash of the last injected snapshot, or null before the first injection. */
@@ -45,8 +51,8 @@ type TmtWorkbenchContextProjection = zod.infer<typeof stateSchema>
 /** Request-preparation injection policy. Invalid values fail plugin load. */
 export interface Config {
   /**
-   * When true, append a JSON dump of rows/form under the summary when it fits
-   * `maxPayloadChars`. Defaults to false (summary only).
+   * When true, append a JSON dump of rows/form/barcodes under the summary when
+   * it fits `maxPayloadChars`. Defaults to false (summary only).
    */
   injectFullRows?: boolean
   /** Maximum characters of JSON payload when `injectFullRows` is true. Defaults to 4000. */
@@ -65,6 +71,33 @@ interface ResolvedConfig {
 }
 
 /**
+ * Build the JSON body injected or returned by the read tool.
+ * @param snapshot - structured workbench view.
+ * @returns serializable payload for form/list/empty kinds.
+ */
+export function snapshotPayload(
+  snapshot: StoredCustomWorkbenchSnapshot['snapshot'],
+): Record<string, JsonValue> {
+  if (snapshot.kind === 'empty') {
+    return { kind: 'empty', title: snapshot.title, rows: [], form: null, barcodes: [] }
+  }
+  if (snapshot.kind === 'list') {
+    return {
+      kind: 'list',
+      title: snapshot.title,
+      rows: snapshot.rows.map(row => ({ ...row })),
+    }
+  }
+  return {
+    kind: 'form',
+    title: snapshot.title,
+    form: { ...(snapshot.form ?? {}) },
+    rows: snapshot.rows.map(row => ({ ...row })),
+    barcodes: (snapshot.barcodes ?? []).map(row => ({ ...row })),
+  }
+}
+
+/**
  * Render the model-facing text for one stored snapshot.
  * @param stored - Host store record.
  * @param config - resolved injection policy.
@@ -75,17 +108,15 @@ export function renderWorkbenchContextText(
   config: ResolvedConfig,
 ): string {
   const { snapshot, hash } = stored
-  const count = snapshot.kind === 'form'
-    ? Object.keys(snapshot.form ?? {}).length
-    : snapshot.rows.length
+  const count = snapshot.rows.length
+  const barcodeCount = snapshot.kind === 'form' ? (snapshot.barcodes?.length ?? 0) : 0
   const lines = [
-    `Custom workbench snapshot (kind=${snapshot.kind}, title=${JSON.stringify(snapshot.title)}, items=${String(count)}, hash=${hash}).`,
+    `Custom workbench snapshot (kind=${snapshot.kind}, title=${JSON.stringify(snapshot.title)}, items=${String(count)}, barcodes=${String(barcodeCount)}, hash=${hash}).`,
     'Use this structured view when the user refers to the list or form currently shown in the custom workbench.',
+    `Call ${GET_CUSTOM_WORKBENCH_SNAPSHOT} when you need the latest snapshot again or the payload was omitted.`,
   ]
   if (!config.injectFullRows || snapshot.kind === 'empty') return lines.join('\n')
-  const payload = snapshot.kind === 'form'
-    ? JSON.stringify(snapshot.form ?? {}, null, 2)
-    : JSON.stringify(snapshot.rows, null, 2)
+  const payload = JSON.stringify(snapshotPayload(snapshot), null, 2)
   if (payload.length > config.maxPayloadChars) {
     lines.push(`Full payload omitted (${String(payload.length)} chars > maxPayloadChars ${String(config.maxPayloadChars)}).`)
     return lines.join('\n')
@@ -96,8 +127,8 @@ export function renderWorkbenchContextText(
 }
 
 /**
- * Register a prepended pre-step listener for the lifetime of `ctx`.
- * @param ctx - plugin context; the listener is disposed with it.
+ * Register pre-step injection and the read tool for the lifetime of `ctx`.
+ * @param ctx - plugin context; the listener and tool are disposed with it.
  * @param config - injection policy.
  */
 export function apply(ctx: Context, config: Config): void {
@@ -128,6 +159,58 @@ export function apply(ctx: Context, config: Config): void {
       return state.lastInjectedHash === hash ? state : { lastInjectedHash: hash }
     },
   })
+
+  ctx.tools.register(defineTool({
+    name: GET_CUSTOM_WORKBENCH_SNAPSHOT,
+    description:
+      'Read the latest 1tmt custom workbench snapshot from Host memory '
+      + '(list rows, open bill form fields, entry rows, and scanned barcodes for 单据明细二). '
+      + 'Call when the user asks what is on the custom workbench, or when the injected snapshot is missing or incomplete. '
+      + 'Read-only: does not change the workbench or call Kingdee.',
+    parameters: {},
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          present: { type: 'boolean', required: true },
+          hash: { type: 'string' },
+          updatedAt: { type: 'number' },
+          snapshot: { type: 'object', additionalProperties: true },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.present
+          ? JSON.stringify({
+            present: true,
+            hash: value.hash,
+            updatedAt: value.updatedAt,
+            snapshot: value.snapshot,
+          }, null, 2)
+          : JSON.stringify({ present: false }, null, 2),
+      }],
+    },
+    async execute() {
+      const stored = ctx.tmtWorkbench.getStored()
+      if (stored === undefined || stored.snapshot.kind === 'empty') {
+        return { present: false as const }
+      }
+      return {
+        present: true as const,
+        hash: stored.hash,
+        updatedAt: stored.updatedAt,
+        snapshot: snapshotPayload(stored.snapshot),
+      }
+    },
+    presentCall() {
+      return {
+        card: 'generic',
+        title: 'Read custom workbench snapshot',
+        kind: 'read',
+      }
+    },
+  }))
 
   ctx.on('agent/pre-step', async (
     { agent, signal }: { agent: Agent; signal: AbortSignal },

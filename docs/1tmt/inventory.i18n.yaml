@@ -1,0 +1,37 @@
+# Bilingual-pair consistency record for inventory.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/1tmt/inventory.md
+/:
+  en: 642a3b91803866cf
+  zh: 357315e0e0051cdd
+/1tmt-self-developed-surface:
+  en: 6b34610bb1c459df
+  zh: 91e4d561daaa3ec1
+/1tmt-self-developed-surface/summary:
+  en: a4f6c9320309b70b
+  zh: b13e45cf06c46dcc
+/1tmt-self-developed-surface/contents:
+  en: 626c3399a27b49aa
+  zh: cba89cc25313af6a
+/1tmt-self-developed-surface/how-the-pieces-call-each-other:
+  en: d0794f133a08ad0e
+  zh: d3accc5c2e9f3f85
+/1tmt-self-developed-surface/host-plugins:
+  en: a4cf445ad1aa478f
+  zh: cb5eb8adda11edfc
+/1tmt-self-developed-surface/browser-plugins:
+  en: c8b22433cf91be15
+  zh: 8a337c8e09135792
+/1tmt-self-developed-surface/vue-islands:
+  en: 45dc949994a26453
+  zh: 79b7f290a335e6da
+/1tmt-self-developed-surface/remotes:
+  en: 3f8f8f4c4a1bb7f2
+  zh: 1b2287a1b4b5faa5
+/1tmt-self-developed-surface/model-tool:
+  en: f605e4138433f456
+  zh: 2d8a1801f2bf8508
+/1tmt-self-developed-surface/ruoyi-mcp-tools:
+  en: ba6795308715f6c2
+  zh: 28f5beb7a0c7c5fc

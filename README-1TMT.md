@@ -3,10 +3,10 @@
 本仓库在上游 DeepSeek Harness 之上，做了现场要用的三件事：
 
 1. **连 1tmt MCP**：本机 Agent 调用 RuoYi 的 `/mcp`（金蝶 / 蒲公英能力）
-2. **员工登录**：组织 + 员工编码 + WMS 密码，登录后才能建会话；按员工隔离本机会话
+2. **harness中台登录**：组织 + 员工编码 + 登录密码，登录后才能建会话；按员工隔离本机会话
 3. **Windows 桌面程序**：双击「Harness」打开独立窗口，不弹黑窗、不依赖浏览器
 
-更细的联调说明见 [docs/1tmt-ruoyi-wms-integration.md](docs/1tmt-ruoyi-wms-integration.md)；按提交的改动说明见 [docs/1tmt-pgy-version-notes.md](docs/1tmt-pgy-version-notes.md)。
+更细的联调说明见 [docs/1tmt-ruoyi-wms-integration.md](docs/1tmt-ruoyi-wms-integration.md)；自研插件、Remote、模型 tool 与 RuoYi MCP 全表见 [docs/1tmt/inventory.zh.md](docs/1tmt/inventory.zh.md)；按提交的改动说明见 [docs/1tmt-kde-harness-mp-version-notes.md](docs/1tmt-kde-harness-mp-version-notes.md)。
 
 ---
 
@@ -49,9 +49,9 @@ IT 仍可在 `%LOCALAPPDATA%\Harness\配置.cmd` 预置 `DSH_1TMT_MCP_URL`（根
 |------|------|
 | `desktop-1tmt/` | Electron 桌面壳 |
 | `scripts/pack-desktop-1tmt.ts` | 打 Windows 安装包 |
-| `packages/api/pgy-login` | 后端地址、会话令牌、登录 / 退出 / 员工会话目录 |
-| `packages/client/ui-pgy-login` | 登录前后端配置、登录层、设置「harness 中台」、侧栏退出 |
-| `packages/bundle/web-app/cordis.patch.yml` | 挂上登录插件（MCP 由 pgy-login 运行时挂载） |
+| `packages/api/kde-harness-mp-login` | 后端地址、会话令牌、登录 / 退出 / 员工会话目录 |
+| `packages/client/ui-kde-harness-mp-login` | 登录前后端配置、登录层、设置「harness 中台」、侧栏退出 |
+| `packages/bundle/web-app/cordis.patch.yml` | 挂上登录插件（MCP 由 kde-harness-mp-login 运行时挂载） |
 
 ---
 
@@ -75,6 +75,6 @@ pnpm dsh web
 ## 依赖怎么跟 master 对齐
 
 - **`master` = 依赖与上游源码的基准**；本分支只叠 1TMT 业务改造（登录、MCP、桌面壳、文档）。
-- 合并 / 变基 `master` 后：冲突时优先保留 **master 的 `pnpm-lock.yaml`**，再执行一次 `pnpm install`（只为登记本分支新增的 workspace 包，如 `pgy-login`）。
+- 合并 / 变基 `master` 后：冲突时优先保留 **master 的 `pnpm-lock.yaml`**，再执行一次 `pnpm install`（只为登记本分支新增的 workspace 包，如 `kde-harness-mp-login`）。
 - 不要在本分支随便跑会重算整棵依赖树的升级；`micromark-util-types` 已 pin 为与 master 相同的 `2.0.2`，防止双版本把 typecheck 弄挂。
 - 拉上游更新示例：见仓库既有说明。

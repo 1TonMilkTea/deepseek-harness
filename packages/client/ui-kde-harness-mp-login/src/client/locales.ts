@@ -1,0 +1,51 @@
+/** `kdeHarnessMpLogin` namespace dictionaries. */
+
+export const zh = {
+  title: 'harness中台登录',
+  subtitle: '使用组织、员工编码和密码登录后继续使用。',
+  org: '组织',
+  orgPlaceholder: '请选择组织',
+  staffNumber: '员工编码',
+  staffNumberPlaceholder: '请输入员工编码',
+  password: '密码',
+  passwordPlaceholder: '请输入登录密码',
+  submit: '登录',
+  loading: '正在加载…',
+  logout: '退出登录',
+  logoutShort: '退出',
+  backendTitle: '后端配置',
+  backendSubtitle: '填写 harness 中台根地址（可带端口），例如 http://192.168.0.108:8081。无需填写令牌。',
+  backendUrl: 'harness 中台地址',
+  backendUrlPlaceholder: 'http://192.168.0.108:8081',
+  backendSubmit: '保存并连接',
+  editBackend: '修改后端地址',
+  backendNav: 'harness 中台',
+  backendSave: '保存',
+  backendSaved: '已连接',
+} satisfies Record<string, string>
+
+export type KdeHarnessMpLoginKey = keyof typeof zh
+
+export const en = {
+  title: 'Harness platform login',
+  subtitle: 'Sign in with organization, staff number, and password to continue.',
+  org: 'Organization',
+  orgPlaceholder: 'Select an organization',
+  staffNumber: 'Staff number',
+  staffNumberPlaceholder: 'Enter staff number',
+  password: 'Password',
+  passwordPlaceholder: 'Enter login password',
+  submit: 'Sign in',
+  loading: 'Loading…',
+  logout: 'Sign out',
+  logoutShort: 'Out',
+  backendTitle: 'Backend setup',
+  backendSubtitle: 'Enter the Harness platform root URL (with port if needed), for example http://192.168.0.108:8081. No token is required.',
+  backendUrl: 'Harness platform URL',
+  backendUrlPlaceholder: 'http://192.168.0.108:8081',
+  backendSubmit: 'Save and connect',
+  editBackend: 'Change backend URL',
+  backendNav: 'Harness platform',
+  backendSave: 'Save',
+  backendSaved: 'Connected',
+} satisfies Record<KdeHarnessMpLoginKey, string>

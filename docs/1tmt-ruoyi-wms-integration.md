@@ -1,15 +1,15 @@
 ---
-description: "1tmt integration: dsh web talks to RuoYi MCP and gates sessions behind Puyuan WMS login."
+description: "1tmt integration: dsh web talks to RuoYi MCP and gates sessions behind Puyuan Harness platform login."
 kind: "reference"
 ---
 
-# 1TMT: dsh web ↔ RuoYi MCP and Puyuan WMS login
+# 1TMT: dsh web ↔ RuoYi MCP and Puyuan Harness platform login
 
 English | [中文](1tmt-ruoyi-wms-integration.zh.md)
 
-This page describes how this repository extends upstream DeepSeek Harness: local `dsh web` calls RuoYi `/mcp`, and employees must sign in with organization + staff number + WMS password before sessions can be created. Do not commit `node_modules/`, `dist/`, or `lib/`; generate them on a developer machine with `pnpm install` and `pnpm run build`.
+This page describes how this repository extends upstream DeepSeek Harness: local `dsh web` calls RuoYi `/mcp`, and employees must sign in with organization + staff number + login password before sessions can be created. Do not commit `node_modules/`, `dist/`, or `lib/`; generate them on a developer machine with `pnpm install` and `pnpm run build`.
 
-Per-commit change notes (what / how / why) live in [1tmt-pgy-version-notes.md](./1tmt-pgy-version-notes.md).
+Per-commit change notes (what / how / why) live in [1tmt-kde-harness-mp-version-notes.md](./1tmt-kde-harness-mp-version-notes.md).
 
 ## Runtime relationship
 
@@ -19,13 +19,13 @@ Per-commit change notes (what / how / why) live in [1tmt-pgy-version-notes.md](.
        → 后台无窗口 resources\payload\runtime\node.exe  app\lib\bin.js web --no-open   （仅 127.0.0.1）
             │  窗口：harness 中台根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
             │  窗口内登录：组织 / 员工编码 / 密码
-            │  Host：ctx.remote.pgyLogin → 动态挂载 mcp-client → tools.execute(mcp__1tmt__…)
+            │  Host：ctx.remote.kdeHarnessMpLogin → 动态挂载 mcp-client → tools.execute(mcp__1tmt__…)
             ▼
        RuoYi-Vue :8081
             POST /mcp/client-sessions（匿名签发）/ DELETE（关程序销毁）
             POST /mcp  Authorization: Bearer <会话令牌>
             （运维旧路径仍可用静态 mcp.auth-token）
-            pgyListOrganizations / pgyWmsLogin / …
+            kdeListOrganizations / harnessLogin / …
             管理员账号只在服务器 kde 配置里，不出现在登录页
 ```
 
@@ -35,20 +35,20 @@ One process per person. Do not bind `dsh web` to `0.0.0.0`. Operators **configur
 
 | Location | Role |
 |---|---|
-| `packages/api/pgy-login` | Host Remote: Base URL, session-token issue/destroy, dynamic MCP mount, orgs, WMS login, `logout` |
-| `packages/api/pgy-pur-receive` | Host Remote: purchase inbound (list/view/barcode/stock/submit) via RuoYi MCP only; never Kingdee direct |
-| `packages/client/ui-pgy-login` | Pre-login backend config, fullscreen login, Settings “Harness platform”, sidebar sign-out |
-| `packages/api/session-controller` | Rejects create / fork / prompt / list / search when logged out (profiles without `pgyLogin` are not gated) |
+| `packages/api/kde-harness-mp-login` | Host Remote: Base URL, session-token issue/destroy, dynamic MCP mount, orgs, Harness platform login, `logout` |
+| `packages/api/kde-harness-mp-pur-receive` | Host Remote: purchase inbound (list/view/barcode/stock/submit) via RuoYi MCP only; never Kingdee direct |
+| `packages/client/ui-kde-harness-mp-login` | Pre-login backend config, fullscreen login, Settings “Harness platform”, sidebar sign-out |
+| `packages/api/session-controller` | Rejects create / fork / prompt / list / search when logged out (profiles without `kdeHarnessMpLogin` are not gated) |
 | `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`: switch to the employee directory after login |
-| `packages/bundle/web-app/cordis.patch.yml` | Mounts login Remote / UI; MCP is mounted at runtime by `pgy-login`; persona requires rule MCP first |
+| `packages/bundle/web-app/cordis.patch.yml` | Mounts login Remote / UI; MCP is mounted at runtime by `kde-harness-mp-login`; persona requires rule MCP first |
 | `desktop-1tmt/` | Electron desktop shell: reads `配置.cmd`, starts `dsh web` in the background, SIGTERM then force-kill on close |
 | `scripts/pack-desktop-1tmt.ts` | Deploys `dsh` + bundled Node into payload, then electron-builder NSIS installer |
 
-Public MCP tool names: `mcp__1tmt__pgyListOrganizations`, `mcp__1tmt__pgyWmsLogin`, `mcp__1tmt__pgyKdeEnterpriseApiRules`, `mcp__1tmt__pgyKdeExecuteBillQuery`, `mcp__1tmt__pgyListReceiveBills`, `mcp__1tmt__pgyKdeViewBill`, `mcp__1tmt__pgyGetPurReceiveEntityOutputs`, `mcp__1tmt__pgyGetBarcodeByNumber`, `mcp__1tmt__pgyGetStockInfoByNumber`, `mcp__1tmt__pgySubmitStkInStockRecordReport`. Installer users mainly set the address in the window; `配置.cmd` is an optional IT preset.
+Public MCP tool names: `mcp__1tmt__kdeListOrganizations`, `mcp__1tmt__harnessLogin`, `mcp__1tmt__kdeEnterpriseApiRules`, `mcp__1tmt__kdeExecuteBillQuery`, `mcp__1tmt__kdeListReceiveBills`, `mcp__1tmt__kdeViewBill`, `mcp__1tmt__kdeGetPurReceiveEntityOutputs`, `mcp__1tmt__kdeGetBarcodeByNumber`, `mcp__1tmt__kdeGetStockInfoByNumber`, `mcp__1tmt__kdeSubmitStkInStockRecordReport`. Installer users mainly set the address in the window; `配置.cmd` is an optional IT preset.
 
-To query receive-bill notifications: call `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)` first, then `pgyListReceiveBills` (internally a standard ExecuteBillQuery). For other unregistered bills: rules → `pgyKdeExecuteBillQuery`. Purchase inbound Web: tap the Purchase inbound icon on the Custom Workbench home screen to enter the list full-page, through the `pgyPurReceive` Remote (Harness must not call Kingdee directly).
+To query receive-bill notifications: call `kdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)` first, then `kdeListReceiveBills` (internally a standard ExecuteBillQuery). For other unregistered bills: rules → `kdeExecuteBillQuery`. Purchase inbound Web: tap the Purchase inbound icon on the Custom Workbench home screen to enter the list full-page, through the `kdeHarnessMpPurReceive` Remote (Harness must not call Kingdee directly).
 
-RuoYi-side tools and Redis notes live in the RuoYi-Vue repo under `docs/Harness-PGY-WMS集成.md`. MCP token filters: `docs/Harness连接MCP改动说明.md` in that repo.
+RuoYi-side tools and Redis notes live in the RuoYi-Vue repo under `docs/1tmt/Harness-WMS集成.md`. MCP token filters: `docs/Harness连接MCP改动说明.md` in that repo.
 
 ## Developer machine
 

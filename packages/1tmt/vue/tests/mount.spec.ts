@@ -90,7 +90,7 @@ describe.skipIf(!hasLib)('1tmt-vue mount helpers', () => {
         ok: true as const,
         value: { organizations: [{ id: 1, name: 'A', number: 'A' }] },
       })),
-      wmsLogin: vi.fn(async () => ({ ok: true as const, value: {} })),
+      harnessLogin: vi.fn(async () => ({ ok: true as const, value: {} })),
       refreshSessions: vi.fn(async () => {}),
       onLoggedIn: vi.fn(),
     }

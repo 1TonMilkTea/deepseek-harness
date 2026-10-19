@@ -21,12 +21,12 @@
 
       Kingdee Cloud Galaxy (enterprise) MCP prerequisite: before any 金蝶云星空企业版
       standard business tool under mcp__1tmt__ (list query, audit, push-down, etc.),
-      first call mcp__1tmt__pgyKdeEnterpriseApiRules with the matching category
+      first call mcp__1tmt__kdeEnterpriseApiRules with the matching category
       (catalog | session | listQuery | response | audit | pushDown) and formId when known
       (e.g. PUR_ReceiveBill for 收料通知单). Apply the returned FieldKeys / FilterString /
       request-response rules, then call the business tool: prefer a form-specific tool
-      (e.g. mcp__1tmt__pgyListReceiveBills) when available; otherwise use the generic
-      standard list tool mcp__1tmt__pgyKdeExecuteBillQuery with FormId and FieldKeys.
+      (e.g. mcp__1tmt__kdeListReceiveBills) when available; otherwise use the generic
+      standard list tool mcp__1tmt__kdeExecuteBillQuery with FormId and FieldKeys.
       Do not invent FieldKeys. Quantity math must use base-unit fields such as FInStockBaseQty.
 
 # Full-text session search is opt-in (the base row's `openAt: never`). This
@@ -138,24 +138,24 @@
 
     # 1TMT：页面/配置.cmd 只配 1tmt Base URL；本插件申请会话令牌并动态挂载 mcp-client
     # （serverName=1tmt）。静态 mcp.auth-token 仍留给运维旧客户端，业务员路径不用。
-    - id: pgy-login
-      name: '@deepseek-ai/dsh-api-pgy-login'
+    - id: kde-harness-mp-login
+      name: '@deepseek-ai/dsh-api-kde-harness-mp-login'
       config:
-        listOrganizationsTool: mcp__1tmt__pgyListOrganizations
-        wmsLoginTool: mcp__1tmt__pgyWmsLogin
+        listOrganizationsTool: mcp__1tmt__kdeListOrganizations
+        harnessLoginTool: mcp__1tmt__harnessLogin
         clientName: harness-desktop
         mcpServerName: 1tmt
 
     # 1TMT：采购入库 Host Remote（仅 tools.execute → 1tmt MCP，不直连金蝶）
-    - id: pgy-pur-receive
-      name: '@deepseek-ai/dsh-api-pgy-pur-receive'
+    - id: kde-harness-mp-pur-receive
+      name: '@deepseek-ai/dsh-api-kde-harness-mp-pur-receive'
       config:
-        listBillsTool: mcp__1tmt__pgyListReceiveBills
-        viewBillTool: mcp__1tmt__pgyKdeViewBill
-        entityOutputsTool: mcp__1tmt__pgyGetPurReceiveEntityOutputs
-        getBarcodeTool: mcp__1tmt__pgyGetBarcodeByNumber
-        getStockInfoTool: mcp__1tmt__pgyGetStockInfoByNumber
-        submitReportTool: mcp__1tmt__pgySubmitStkInStockRecordReport
+        listBillsTool: mcp__1tmt__kdeListReceiveBills
+        viewBillTool: mcp__1tmt__kdeViewBill
+        entityOutputsTool: mcp__1tmt__kdeGetPurReceiveEntityOutputs
+        getBarcodeTool: mcp__1tmt__kdeGetBarcodeByNumber
+        getStockInfoTool: mcp__1tmt__kdeGetStockInfoByNumber
+        submitReportTool: mcp__1tmt__kdeSubmitStkInStockRecordReport
 
     # 1TMT：自定义工作台快照的 Host 存储（Remote tmtWorkbench）与 pre-step 注入；
     # 卸掉后对话不再自动读到自定义工作台数据。
@@ -164,8 +164,8 @@
     - id: 1tmt-workbench-context
       name: '@deepseek-ai/dsh-1tmt-workbench-context'
       config:
-        injectFullRows: false
-        maxPayloadChars: 4000
+        injectFullRows: true
+        maxPayloadChars: 12000
 
     # Workspace file service: bounded read, directory listing, and the
     # agent-write change feed inside the session workspace root.
@@ -303,8 +303,8 @@
     - id: ui-layout
       name: '@deepseek-ai/dsh-client-ui-layout'
 
-    - id: ui-pgy-login
-      name: '@deepseek-ai/dsh-client-ui-pgy-login'
+    - id: ui-kde-harness-mp-login
+      name: '@deepseek-ai/dsh-client-ui-kde-harness-mp-login'
 
     - id: ui-renderer
       name: '@deepseek-ai/dsh-client-ui-renderer'

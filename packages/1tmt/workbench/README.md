@@ -46,7 +46,7 @@ None; this package neither assembles nor sends a provider request.
 <a id="known-limitations-and-deferred-work"></a>
 
 - **Process-local only** — snapshots do not survive Host restart and are not keyed per Session in this cut.
-- **No read tool yet** — full row payloads ride the optional `injectFullRows` path in workbench-context; a dedicated read tool is deferred.
+- **Model reads** — full row payloads ride workbench-context `injectFullRows`; on-demand reads use that package's `get_custom_workbench_snapshot` tool.
 
 <a id="dev-note"></a>
 ### Dev Note

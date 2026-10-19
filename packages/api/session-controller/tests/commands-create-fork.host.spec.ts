@@ -41,22 +41,22 @@ async function baseContext(): Promise<Context> {
 }
 
 describe('Session creation failures', () => {
-  it('refuses create, fork, and prompt until WMS login succeeds', async () => {
+  it('refuses create, fork, and prompt until Harness platform login succeeds', async () => {
     const ctx = await baseContext()
     ctx.provide('workspaceRegistry', { get: () => undefined, list: () => [] } as never)
-    ctx.provide('pgyLogin', { isLoggedIn: () => false } as never)
+    ctx.provide('kdeHarnessMpLogin', { isLoggedIn: () => false } as never)
     const controller = new SessionCommandController(ctx, controllerAgents(), '/default')
 
-    await expectFailure(controller.create({}), 'pgy/login-required')
-    await expectFailure(controller.fork({ sessionId: 'session-a' as SessionId }), 'pgy/login-required')
+    await expectFailure(controller.create({}), 'kde-harness-mp/login-required')
+    await expectFailure(controller.fork({ sessionId: 'session-a' as SessionId }), 'kde-harness-mp/login-required')
     await expectFailure(controller.prompt({
       sessionId: 'session-a' as SessionId,
       requestId: 'req-1' as never,
       mode: 'queue',
       content: [{ type: 'text', text: 'hi' }],
-    }), 'pgy/login-required')
+    }), 'kde-harness-mp/login-required')
     expect(() => controller.assertLoggedIn()).toThrow(
-      expect.objectContaining({ code: 'pgy/login-required' }),
+      expect.objectContaining({ code: 'kde-harness-mp/login-required' }),
     )
     await ctx.fiber.dispose()
   })
@@ -313,20 +313,20 @@ describe('Session fork failures', () => {
 })
 
 describe('Session list and search login gate', () => {
-  it('refuses list and search until WMS login succeeds', async () => {
+  it('refuses list and search until Harness platform login succeeds', async () => {
     const ctx = await baseContext()
-    ctx.provide('pgyLogin', { isLoggedIn: () => false } as never)
+    ctx.provide('kdeHarnessMpLogin', { isLoggedIn: () => false } as never)
     const remote = createSessionTestRemote(ctx, {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
     })
     await expect(remote.list({})).resolves.toMatchObject({
       ok: false,
-      error: expect.objectContaining({ code: 'pgy/login-required' }),
+      error: expect.objectContaining({ code: 'kde-harness-mp/login-required' }),
     })
     await expect(remote.search({ query: 'hi' })).resolves.toMatchObject({
       ok: false,
-      error: expect.objectContaining({ code: 'pgy/login-required' }),
+      error: expect.objectContaining({ code: 'kde-harness-mp/login-required' }),
     })
     await ctx.fiber.dispose()
   })

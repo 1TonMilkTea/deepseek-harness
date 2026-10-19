@@ -12,7 +12,7 @@ const baseUrlDraft = ref('')
 const organizations = ref<readonly LoginOrganization[]>([])
 const orgId = ref<number | undefined>(undefined)
 const staffNumber = ref('')
-const wmsPassword = ref('')
+const password = ref('')
 const busy = ref(false)
 const error = ref<string | null>(null)
 
@@ -90,15 +90,15 @@ async function onBackendSubmit(): Promise<void> {
 
 async function onLoginSubmit(): Promise<void> {
   const id = orgId.value
-  if (id === undefined || !Number.isFinite(id) || staffNumber.value.trim() === '' || wmsPassword.value === '') {
+  if (id === undefined || !Number.isFinite(id) || staffNumber.value.trim() === '' || password.value === '') {
     return
   }
   busy.value = true
   error.value = null
-  const result = await bridge.wmsLogin({
+  const result = await bridge.harnessLogin({
     orgId: id,
     staffNumber: staffNumber.value.trim(),
-    wmsPassword: wmsPassword.value,
+    password: password.value,
   })
   if (cancelled) return
   if (!result.ok) {
@@ -209,7 +209,7 @@ function openBackend(): void {
         <div class="tmt-login-field">
           <el-form-item :label="bridge.labels.password">
             <el-input
-              v-model="wmsPassword"
+              v-model="password"
               type="password"
               show-password
               :disabled="busy"

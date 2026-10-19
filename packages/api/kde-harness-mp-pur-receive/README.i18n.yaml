@@ -1,0 +1,34 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/api/kde-harness-mp-pur-receive/README.md
+/:
+  en: e4758b517365bf16
+  zh: 7405be873eb858cb
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive:
+  en: 9c1a4890cc3428eb
+  zh: 3a69ee2d47425b92
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive/summary:
+  en: 9094d90958d7ce27
+  zh: 7b23d2794e21d8ef
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive/table-of-contents:
+  en: 2d9e6ac7cd680553
+  zh: cde5c98c64706e91
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive/use-this-package:
+  en: aba2ee6e03ce62ba
+  zh: 857b95388cb23987
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive/remote-mcp-map:
+  en: c6d1cdd5b725fcd6
+  zh: 64ca871c9c71a2b7
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive/model-experience:
+  en: fb09ca975be57a35
+  zh: 8e0abfd94dfa192f
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 3eeb7ebebcd2be23
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive/known-limitations-and-deferred-work:
+  en: 2adcbe1cebb076ea
+  zh: bd61ebfd4a8ab75d
+/deepseek-ai-dsh-api-kde-harness-mp-pur-receive/known-limitations-and-deferred-work/dev-note:
+  en: 208126cb2eb8137a
+  zh: 5900e5f8b191a145

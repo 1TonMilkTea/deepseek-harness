@@ -28,10 +28,10 @@ async function bench() {
     publishSnapshot: vi.fn(async () => ({ ok: true, value: { hash: 'x', updatedAt: 1 } })),
     clearSnapshot: vi.fn(async () => ({ ok: true, value: undefined })),
   }
-  const pgyLogin = {
+  const kdeHarnessMpLogin = {
     status: vi.fn(async () => ({ ok: true, value: { loggedIn: true } })),
   }
-  const pgyPurReceive = {
+  const kdeHarnessMpPurReceive = {
     listBills: vi.fn(async () => ({ ok: true, value: { status: 'ok', rows: [] } })),
     viewBill: vi.fn(async () => ({ ok: true, value: {} })),
     entityOutputs: vi.fn(async () => ({ ok: true, value: { rows: [] } })),
@@ -39,10 +39,10 @@ async function bench() {
     getStockInfo: vi.fn(async () => ({ ok: true, value: {} })),
     submitReport: vi.fn(async () => ({ ok: true, value: {} })),
   }
-  ctx.provide('remote', { tmtWorkbench, pgyLogin, pgyPurReceive } as never)
+  ctx.provide('remote', { tmtWorkbench, kdeHarnessMpLogin, kdeHarnessMpPurReceive } as never)
   ctx.provide('remote.tmtWorkbench', tmtWorkbench as never)
-  ctx.provide('remote.pgyLogin', pgyLogin as never)
-  ctx.provide('remote.pgyPurReceive', pgyPurReceive as never)
+  ctx.provide('remote.kdeHarnessMpLogin', kdeHarnessMpLogin as never)
+  ctx.provide('remote.kdeHarnessMpPurReceive', kdeHarnessMpPurReceive as never)
   const slots = ctx.get('slots') as SlotRegistry
   slots.register(
     {
@@ -72,8 +72,8 @@ describe('ui-custom-workbench apply', () => {
       'locale',
       'remote',
       'remote.tmtWorkbench',
-      'remote.pgyLogin',
-      'remote.pgyPurReceive',
+      'remote.kdeHarnessMpLogin',
+      'remote.kdeHarnessMpPurReceive',
     ])
     const b = await bench()
     await b.ctx.plugin({ inject: [...inject], apply }).await()

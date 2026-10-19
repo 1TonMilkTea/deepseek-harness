@@ -26,7 +26,7 @@ Local product UI and Host context plugins that are not part of the upstream Harn
 |---|---|---|
 | [`vue/`](vue/README.md) | Login + Custom Workbench Element Plus apps and mount helpers | — |
 | [`workbench/`](workbench/README.md) | Host Remote store for the Custom Workbench snapshot | `tmtWorkbench` |
-| [`workbench-context/`](workbench-context/README.md) | `agent/pre-step` injection of the latest snapshot summary | — |
+| [`workbench-context/`](workbench-context/README.md) | `agent/pre-step` injection plus model tool `get_custom_workbench_snapshot` | — |
 
 -----
 

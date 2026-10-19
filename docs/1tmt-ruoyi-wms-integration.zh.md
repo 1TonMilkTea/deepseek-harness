@@ -1,15 +1,15 @@
 ---
-description: "1tmt 集成：dsh web 对接 1tmt MCP，并以蒲公英 WMS 登录门禁会话。"
+description: "1tmt 集成：dsh web 对接 1tmt MCP，并以harness中台登录门禁会话。"
 kind: "reference"
 ---
 
-# 1TMT：dsh web 对接 1tmt MCP 与蒲公英 WMS 登录
+# 1TMT：dsh web 对接 1tmt MCP 与harness中台登录
 
 [English](1tmt-ruoyi-wms-integration.md) | 中文
 
-本文说明本仓库相对上游 DeepSeek Harness 的集成：本机 `dsh web` 调用 RuoYi `/mcp`，员工用组织 + 员工编码 + WMS 密码登录后才能建会话。不要把 `node_modules/`、`dist/`、`lib/` 提交进 git；开发机用 `pnpm install` 与 `pnpm run build` 生成它们。
+本文说明本仓库相对上游 DeepSeek Harness 的集成：本机 `dsh web` 调用 RuoYi `/mcp`，员工用组织 + 员工编码 + 登录密码登录后才能建会话。不要把 `node_modules/`、`dist/`、`lib/` 提交进 git；开发机用 `pnpm install` 与 `pnpm run build` 生成它们。
 
-按提交的改动说明（改了什么 / 逻辑 / 为什么）见 [1tmt-pgy-version-notes.md](./1tmt-pgy-version-notes.zh.md)。
+按提交的改动说明（改了什么 / 逻辑 / 为什么）见 [1tmt-kde-harness-mp-version-notes.md](./1tmt-kde-harness-mp-version-notes.zh.md)。
 
 ## 运行时关系
 
@@ -19,13 +19,13 @@ kind: "reference"
        → 后台无窗口 resources\payload\runtime\node.exe  app\lib\bin.js web --no-open   （仅 127.0.0.1）
             │  窗口：harness 中台根地址（首次/设置）→ POST /mcp/client-sessions → 会话令牌
             │  窗口内登录：组织 / 员工编码 / 密码
-            │  Host：ctx.remote.pgyLogin → 动态挂载 mcp-client → tools.execute(mcp__1tmt__…)
+            │  Host：ctx.remote.kdeHarnessMpLogin → 动态挂载 mcp-client → tools.execute(mcp__1tmt__…)
             ▼
        RuoYi-Vue :8081
             POST /mcp/client-sessions（匿名签发）/ DELETE（关程序销毁）
             POST /mcp  Authorization: Bearer <会话令牌>
             （运维旧路径仍可用静态 mcp.auth-token）
-            pgyListOrganizations / pgyWmsLogin / …
+            kdeListOrganizations / harnessLogin / …
             管理员账号只在服务器 kde 配置里，不出现在登录页
 ```
 
@@ -35,20 +35,20 @@ kind: "reference"
 
 | 位置 | 作用 |
 |---|---|
-| `packages/api/pgy-login` | Host Remote：Base URL、会话令牌签发/销毁、动态挂载 MCP、拉组织、WMS 登录、`logout` |
-| `packages/api/pgy-pur-receive` | Host Remote：采购入库（列表/View/条码/仓位/提交），仅 `tools.execute` → 1tmt MCP，不直连金蝶 |
-| `packages/client/ui-pgy-login` | 登录前「后端配置」、全屏登录、设置「harness 中台」、侧栏退出 |
-| `packages/api/session-controller` | 未登录时拒绝 create / fork / prompt / list / search（无 `pgyLogin` 服务的 profile 不拦） |
+| `packages/api/kde-harness-mp-login` | Host Remote：Base URL、会话令牌签发/销毁、动态挂载 MCP、拉组织、harness中台登录、`logout` |
+| `packages/api/kde-harness-mp-pur-receive` | Host Remote：采购入库（列表/View/条码/仓位/提交），仅 `tools.execute` → 1tmt MCP，不直连金蝶 |
+| `packages/client/ui-kde-harness-mp-login` | 登录前「后端配置」、全屏登录、设置「harness 中台」、侧栏退出 |
+| `packages/api/session-controller` | 未登录时拒绝 create / fork / prompt / list / search（无 `kdeHarnessMpLogin` 服务的 profile 不拦） |
 | `packages/session/session-persistence-jsonl` | `getBaseRoot` / `bindRoot`：登录后切到员工目录 |
-| `packages/bundle/web-app/cordis.patch.yml` | 挂登录 Remote / UI；MCP 由 `pgy-login` 运行时挂载；persona 强制先调规则 MCP |
+| `packages/bundle/web-app/cordis.patch.yml` | 挂登录 Remote / UI；MCP 由 `kde-harness-mp-login` 运行时挂载；persona 强制先调规则 MCP |
 | `desktop-1tmt/` | Electron 桌面壳：读 `配置.cmd`、后台拉起 `dsh web`、关窗时 SIGTERM 再强杀 |
 | `scripts/pack-desktop-1tmt.ts` | 部署 `dsh` + 内置 Node 到 payload，再用 electron-builder 打 NSIS 安装包 |
 
-MCP 公开工具名：`mcp__1tmt__pgyListOrganizations`、`mcp__1tmt__pgyWmsLogin`、`mcp__1tmt__pgyKdeEnterpriseApiRules`、`mcp__1tmt__pgyKdeExecuteBillQuery`、`mcp__1tmt__pgyListReceiveBills`、`mcp__1tmt__pgyKdeViewBill`、`mcp__1tmt__pgyGetPurReceiveEntityOutputs`、`mcp__1tmt__pgyGetBarcodeByNumber`、`mcp__1tmt__pgyGetStockInfoByNumber`、`mcp__1tmt__pgySubmitStkInStockRecordReport`。安装包用户主路径在窗口配地址；`配置.cmd` 仅 IT 预置。
+MCP 公开工具名：`mcp__1tmt__kdeListOrganizations`、`mcp__1tmt__harnessLogin`、`mcp__1tmt__kdeEnterpriseApiRules`、`mcp__1tmt__kdeExecuteBillQuery`、`mcp__1tmt__kdeListReceiveBills`、`mcp__1tmt__kdeViewBill`、`mcp__1tmt__kdeGetPurReceiveEntityOutputs`、`mcp__1tmt__kdeGetBarcodeByNumber`、`mcp__1tmt__kdeGetStockInfoByNumber`、`mcp__1tmt__kdeSubmitStkInStockRecordReport`。安装包用户主路径在窗口配地址；`配置.cmd` 仅 IT 预置。
 
-查收料通知单：先 `pgyKdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)`，再 `pgyListReceiveBills`（内部即标准 ExecuteBillQuery）。其他未登记单据：规则 → `pgyKdeExecuteBillQuery`。采购入库 Web：自定义工作台首页点「采购入库」图标进入列表，经 `pgyPurReceive` Remote 调上述 MCP（Harness 禁止直连金蝶）。
+查收料通知单：先 `kdeEnterpriseApiRules(category=listQuery, formId=PUR_ReceiveBill)`，再 `kdeListReceiveBills`（内部即标准 ExecuteBillQuery）。其他未登记单据：规则 → `kdeExecuteBillQuery`。采购入库 Web：自定义工作台首页点「采购入库」图标进入列表，经 `kdeHarnessMpPurReceive` Remote 调上述 MCP（Harness 禁止直连金蝶）。
 
-1tmt 侧工具与 Redis 说明见 RuoYi-Vue 仓库 `docs/Harness-PGY-WMS集成.md`。MCP 令牌过滤器见该仓库 `docs/Harness连接MCP改动说明.md`。
+1tmt 侧工具与 Redis 说明见 RuoYi-Vue 仓库 `docs/1tmt/Harness-WMS集成.md`。MCP 令牌过滤器见该仓库 `docs/Harness连接MCP改动说明.md`。
 
 ## 开发机
 

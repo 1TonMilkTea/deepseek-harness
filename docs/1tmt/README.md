@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This page is for developers extending Harness on the 1tmt product line. It first explains what the **Custom Workbench** is, which plugins compose it, and how it works beside the conversation; then **how Harness delivers context to the model** (hard rules and extension points) and the purpose and data path of the **workbench snapshot plugins**; finally it covers day-to-day edits for the product UI (employee login / Custom Workbench) and acceptance checks. 1tmt owns only two UI surfaces: the fullscreen WMS employee login and the left business area opened from the sidebar Custom Workbench entry. Both are Vue 3 + Element Plus islands under `packages/1tmt/vue`; the right-hand conversation and DeepSeek account login stay native Harness React.
+This page is for developers extending Harness on the 1tmt product line. It first explains what the **Custom Workbench** is, which plugins compose it, and how it works beside the conversation; then **how Harness delivers context to the model** (hard rules and extension points) and the purpose and data path of the **workbench snapshot plugins**; finally it covers day-to-day edits for the product UI (employee login / Custom Workbench) and acceptance checks. 1tmt owns only two UI surfaces: the fullscreen Harness platform login and the left business area opened from the sidebar Custom Workbench entry. Both are Vue 3 + Element Plus islands under `packages/1tmt/vue`; the right-hand conversation and DeepSeek account login stay native Harness React.
 
 ## Table of Contents
 
@@ -269,7 +269,7 @@ Conventions:
 | Employee login form / style / interaction | `packages/1tmt/vue/src/apps/login/` | `packages/client/ui-settings-account` (DeepSeek account login) |
 | Custom Workbench business page | `packages/1tmt/vue/src/apps/custom-workbench/` | Conversation, sidebar chrome, settings body |
 | Workbench → model context | Vue `publishSnapshot` + the two Host plugins above | agent-loop, ui-layout, reading the DOM |
-| Login backend / MCP | Bridge + `packages/api/pgy-login` (Host Remote) | `import` Cordis / `ctx` from Vue |
+| Login backend / MCP | Bridge + `packages/api/kde-harness-mp-login` (Host Remote) | `import` Cordis / `ctx` from Vue |
 | Sidebar Custom Workbench label / icon | `packages/client/ui-custom-workbench` (thin shell) | Migrate the whole app to Vue |
 
 Architecture:
@@ -277,7 +277,7 @@ Architecture:
 ```mermaid
 flowchart LR
   subgraph react [Harness React shells]
-    pgyHost[ui-pgy-login]
+    loginHost[ui-kde-harness-mp-login]
     customHost[ui-custom-workbench]
     conv[Conversation right]
   end
@@ -289,7 +289,7 @@ flowchart LR
     workbench[tmtWorkbench]
     ctxPlugin[workbench-context]
   end
-  pgyHost -->|mountLogin + LoginBridge| loginApp
+  loginHost -->|mountLogin + LoginBridge| loginApp
   customHost -->|mountCustomWorkbench + CustomWorkbenchBridge| customApp
   customApp -->|publishSnapshot| customHost
   customHost -->|Remote| workbench
@@ -314,9 +314,9 @@ packages/1tmt/vue/                     # Product UI (npm: @deepseek-ai/dsh-1tmt-
 
 packages/1tmt/workbench/               # Host Remote: snapshot store (ctx.tmtWorkbench)
 packages/1tmt/workbench-context/       # agent/pre-step: inject changed snapshots
-packages/client/ui-pgy-login/          # Login shell: Bridge + mount/unmount
+packages/client/ui-kde-harness-mp-login/          # Login shell: Bridge + mount/unmount
 packages/client/ui-custom-workbench/   # Workbench shell: sidebar + Bridge → Remote
-packages/api/pgy-login/                # Host Remote: orgs, WMS login, backend URL
+packages/api/kde-harness-mp-login/                # Host Remote: orgs, Harness platform login, backend URL
 packages/api/remotes/                  # Client Remote assembly (includes tmtWorkbench)
 docs/1tmt/README.md                    # This guide
 ```
@@ -333,7 +333,7 @@ From the repository root:
 pnpm --filter @deepseek-ai/dsh-1tmt-vue build
 
 # 2. Bundle client shells (rebuild even for CSS/copy tweaks to avoid stale lib)
-pnpm --filter @deepseek-ai/dsh-client-ui-pgy-login bundle
+pnpm --filter @deepseek-ai/dsh-client-ui-kde-harness-mp-login bundle
 pnpm --filter @deepseek-ai/dsh-client-ui-custom-workbench bundle
 
 # 3. After workbench Host source edits: tsc, then Host tsdown (emits typert remote)
@@ -353,7 +353,7 @@ Focused tests:
 pnpm exec vitest run packages/1tmt/vue/tests/mount.spec.ts
 pnpm exec vitest run packages/1tmt/workbench/tests
 pnpm exec vitest run packages/1tmt/workbench-context/tests
-pnpm exec vitest run packages/client/ui-pgy-login/tests/login-overlay.client.spec.tsx
+pnpm exec vitest run packages/client/ui-kde-harness-mp-login/tests/login-overlay.client.spec.tsx
 pnpm exec vitest run packages/client/ui-custom-workbench/tests
 ```
 
@@ -365,11 +365,11 @@ pnpm exec vitest run packages/client/ui-custom-workbench/tests
 1. Edit `packages/1tmt/vue/src/apps/login/App.vue` (form) and `app.css` (styles).
 2. Use Element Plus in components; take copy from `bridge.labels.*`, do not hard-code Chinese (shell i18n owns product strings).
 3. For new fields or APIs, extend `LoginBridge` first (next section), then call it from Vue.
-4. `build` → `ui-pgy-login bundle` → `dsh web`, confirm the fullscreen gate is still Element Plus and **Settings DeepSeek account login is unchanged**.
+4. `build` → `ui-kde-harness-mp-login bundle` → `dsh web`, confirm the fullscreen gate is still Element Plus and **Settings DeepSeek account login is unchanged**.
 
-Vue drives the flow: `status` → (optional) backend URL → `listOrganizations` → `wmsLogin` → `refreshSessions` → `onLoggedIn()`. The React shell tears down the portal on success.
+Vue drives the flow: `status` → (optional) backend URL → `listOrganizations` → `harnessLogin` → `refreshSessions` → `onLoggedIn()`. The React shell tears down the portal on success.
 
-Settings “Harness platform” and sidebar sign-out stay in `ui-pgy-login` React components; this cut does not move them to Vue.
+Settings “Harness platform” and sidebar sign-out stay in `ui-kde-harness-mp-login` React components; this cut does not move them to Vue.
 
 -----
 
@@ -379,7 +379,7 @@ Settings “Harness platform” and sidebar sign-out stay in `ui-pgy-login` Reac
 1. Put business UI in `packages/1tmt/vue/src/apps/custom-workbench/` (`App.vue`, `stk-input.ts`, CSS). **Add new modules only as home-screen icon entries** (tap an icon to enter the module full-page, like the RuoYi-App workbench); do not register more `sidebar.panellist` entries.
 2. The sidebar keeps a single 1tmt business entry, Custom Workbench; AppFrame splits left/right (panel id = `custom-workbench`; see [how it works](#custom-workbench-overview)). The workbench opens on an icon home screen; tap Purchase inbound to enter segmented pages (bill list, lines, barcodes). A barcode matches by receive-bill id and entry id, then selects that line.
 3. Sidebar label/icon: `packages/client/ui-custom-workbench/src/client/locales.ts`, `CustomWorkbenchIcon.tsx`.
-4. Host capabilities via Bridge: `publishSnapshot` / `clearSnapshot` (`tmtWorkbench`) and purchase-inbound `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport` (`pgyPurReceive`, MCP only).
+4. Host capabilities via Bridge: `publishSnapshot` / `clearSnapshot` (`tmtWorkbench`) and purchase-inbound `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport` (`kdeHarnessMpPurReceive`, MCP only).
 5. Call `bridge.publishSnapshot(...)` after list/bill changes so the next pre-step can see them (see “Workbench snapshot plugins” above).
 
 Purchase-inbound path: list receive bills → open detail (View + entity outputs) → enter stock code / barcode manually → confirm inbound synchronously (no PDA queue, no developer mode). DTO assembly lives in Vue `stk-input.ts`.
@@ -393,9 +393,9 @@ Vue **must not** touch `ctx`. The path is:
 
 1. Add methods/fields in `packages/1tmt/vue/src/bridge.ts` and `types/index.d.ts` (keep both aligned).
 2. Assemble the Bridge in the shell:
-   - Login: `packages/client/ui-pgy-login/src/client/LoginOverlay.tsx` (and `inject` in `index.ts`)
+   - Login: `packages/client/ui-kde-harness-mp-login/src/client/LoginOverlay.tsx` (and `inject` in `index.ts`)
    - Workbench: `packages/client/ui-custom-workbench/src/client/CustomWorkbenchPage.tsx` (add `inject` deps when needed)
-3. If the capability does not exist yet: implement a Host Remote first (e.g. `pgy-login`, `1tmt-workbench`), wire the shell, and mount the Client remote in `dsh-api-remotes`.
+3. If the capability does not exist yet: implement a Host Remote first (e.g. `kde-harness-mp-login`, `1tmt-workbench`), wire the shell, and mount the Client remote in `dsh-api-remotes`.
 4. In Vue: `const bridge = inject<YourBridge>('1tmtBridge')` and call only the Bridge.
 
 `BridgeResult<T>` mirrors Typert `RemoteResult`: `{ ok: true, value }` / `{ ok: false, error: { message } }`. Shells may forward Remote results to Vue as-is.
@@ -407,7 +407,7 @@ Vue **must not** touch `ctx`. The path is:
 
 | Copy | File |
 |---|---|
-| Login labels (passed into Vue) | `packages/client/ui-pgy-login/src/client/locales.ts` |
+| Login labels (passed into Vue) | `packages/client/ui-kde-harness-mp-login/src/client/locales.ts` |
 | Workbench title, sidebar Custom Workbench, purchase-inbound copy | `packages/client/ui-custom-workbench/src/client/locales.ts` (namespace `customWorkbench`) |
 
 Vue reads `bridge.labels` only; do not hard-code product copy in `.vue` files.
@@ -418,7 +418,7 @@ Vue reads `bridge.labels` only; do not hard-code product copy in `.vue` files.
 ## Acceptance checklist
 
 - [ ] `pnpm --filter @deepseek-ai/dsh-1tmt-vue build` succeeds
-- [ ] `ui-pgy-login` / `ui-custom-workbench` host `bundle` succeeds
+- [ ] `ui-kde-harness-mp-login` / `ui-custom-workbench` host `bundle` succeeds
 - [ ] Host has `packages/1tmt/workbench/lib/typert.remote-client.js` (Remote generated)
 - [ ] `dsh web`: fullscreen employee login is Element Plus (DevTools: `.el-card` / `style#dsh-1tmt-element-plus`)
 - [ ] After login, Custom Workbench opens left Vue (Purchase → Purchase inbound) + right native chat; list queries call `publishSnapshot`
@@ -441,6 +441,7 @@ Vue reads `bridge.labels` only; do not hard-code product copy in `.vue` files.
 - Browser shell: [`packages/client/ui-custom-workbench/README.md`](../../packages/client/ui-custom-workbench/README.md)
 - Sample `time-context`: [`packages/context/time-context/README.md`](../../packages/context/time-context/README.md)
 - Web Client shell: [`docs/subsystems/web-client.md`](../subsystems/web-client.md)
-- RuoYi MCP / WMS login integration: [`docs/1tmt-ruoyi-wms-integration.md`](../1tmt-ruoyi-wms-integration.md)
-- Integration commit notes: [`docs/1tmt-pgy-version-notes.md`](../1tmt-pgy-version-notes.md)
-- RuoYi MCP tools live in the RuoYi repo under `1tmt-kde-pgy` (separate from this UI / context guide)
+- RuoYi MCP / Harness platform login integration: [`docs/1tmt-ruoyi-wms-integration.md`](../1tmt-ruoyi-wms-integration.md)
+- Integration commit notes: [`docs/1tmt-kde-harness-mp-version-notes.md`](../1tmt-kde-harness-mp-version-notes.md)
+- RuoYi MCP tools live in the RuoYi repo under `1tmt-kde-deepseek-harness-mp` (separate from this UI / context guide)
+- Self-developed plugins, Remotes, the snapshot tool, and MCP names: [`docs/1tmt/inventory.md`](./inventory.md)

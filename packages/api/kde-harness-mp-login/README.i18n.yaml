@@ -1,0 +1,31 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/api/kde-harness-mp-login/README.md
+/:
+  en: 49358d61d38903c7
+  zh: 00607620f00fad79
+/deepseek-ai-dsh-api-kde-harness-mp-login:
+  en: 8573d97f71c73e9f
+  zh: 6122c6cbbba7f7eb
+/deepseek-ai-dsh-api-kde-harness-mp-login/summary:
+  en: 1bf32c86bc03610f
+  zh: 050682f0da605aa2
+/deepseek-ai-dsh-api-kde-harness-mp-login/table-of-contents:
+  en: d7fbbba70852c433
+  zh: b1d8d953f9d82d8a
+/deepseek-ai-dsh-api-kde-harness-mp-login/use-this-package:
+  en: fdc379a96d3c841e
+  zh: 6c1ed18c18f72670
+/deepseek-ai-dsh-api-kde-harness-mp-login/model-experience:
+  en: 07df0cfb9132d8d3
+  zh: 76f7da393cb33b6e
+/deepseek-ai-dsh-api-kde-harness-mp-login/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 3eeb7ebebcd2be23
+/deepseek-ai-dsh-api-kde-harness-mp-login/known-limitations-and-deferred-work:
+  en: 3acef086bd8740f9
+  zh: 1a9906a43ab0be1d
+/deepseek-ai-dsh-api-kde-harness-mp-login/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: e88aeb617ffb74ea

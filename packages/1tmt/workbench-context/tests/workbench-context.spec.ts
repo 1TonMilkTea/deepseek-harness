@@ -1,15 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { createUserMessage, ToolCallId } from '@deepseek-ai/dsh-llm'
 import type { ContextFormed } from '@deepseek-ai/dsh-llm'
 import { Session, SessionId } from '@deepseek-ai/dsh-session'
 import AgentRegistry, { agentEvents, type Agent } from '@deepseek-ai/dsh-agent'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import { unsupportedInbox } from '@deepseek-ai/dsh-agent-loop-testkit'
+import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
+import ToolRuntime from '@deepseek-ai/dsh-tools'
 import TmtWorkbenchStore, { hashCustomWorkbenchSnapshot } from '@deepseek-ai/dsh-1tmt-workbench'
 import type { CustomWorkbenchSnapshot } from '@deepseek-ai/dsh-1tmt-workbench'
 import * as workbenchContext from '../src/index.ts'
-import { renderWorkbenchContextText } from '../src/index.ts'
+import {
+  GET_CUSTOM_WORKBENCH_SNAPSHOT,
+  renderWorkbenchContextText,
+  snapshotPayload,
+} from '../src/index.ts'
 
 declare module '@deepseek-ai/dsh-llm' {
   interface MessageSourceMap {
@@ -28,6 +34,26 @@ const sample: CustomWorkbenchSnapshot = {
   ],
 }
 
+const formSample: CustomWorkbenchSnapshot = {
+  kind: 'form',
+  title: '采购入库 CGSL1',
+  rows: [
+    { entryId: 10, material: 'M1', materialName: '物料1', qty: 20, barcodeCount: 1 },
+  ],
+  form: {
+    billId: 1,
+    billNo: 'CGSL1',
+    barcodeCount: 1,
+    segment: 2,
+    selectedEntryIndex: 0,
+    selectedEntryId: 10,
+    selectedMaterial: '物料1',
+  },
+  barcodes: [
+    { entryId: 10, material: '物料1', barcode: 'BC-1', qty: 5 },
+  ],
+}
+
 async function mount(config: workbenchContext.Config = {}) {
   const ctx = new Context()
   ctx.provide('typert', {
@@ -36,6 +62,8 @@ async function mount(config: workbenchContext.Config = {}) {
   } as never)
   await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(AgentRegistry)
+  await ctx.plugin(SystemPrompt)
+  await ctx.plugin(ToolRuntime)
   const store = new TmtWorkbenchStore(ctx)
   const fiber = await ctx.plugin(workbenchContext, config)
   return { ctx, fiber, store }
@@ -97,10 +125,28 @@ describe('renderWorkbenchContextText', () => {
     const summary = renderWorkbenchContextText(stored, { injectFullRows: false, maxPayloadChars: 4000 })
     expect(summary).toContain('kind=list')
     expect(summary).toContain('items=2')
+    expect(summary).toContain(GET_CUSTOM_WORKBENCH_SNAPSHOT)
     expect(summary).not.toContain('Payload:')
     const full = renderWorkbenchContextText(stored, { injectFullRows: true, maxPayloadChars: 4000 })
     expect(full).toContain('Payload:')
     expect(full).toContain('"name": "a"')
+  })
+
+  it('includes form rows and barcodes when injectFullRows is true', () => {
+    const stored = {
+      snapshot: formSample,
+      hash: hashCustomWorkbenchSnapshot(formSample),
+      updatedAt: 1,
+    }
+    const full = renderWorkbenchContextText(stored, { injectFullRows: true, maxPayloadChars: 8000 })
+    expect(full).toContain('barcodes=1')
+    expect(full).toContain('"barcode": "BC-1"')
+    expect(full).toContain('"segment": 2')
+    expect(full).toContain('"materialName": "物料1"')
+    expect(snapshotPayload(formSample)).toMatchObject({
+      kind: 'form',
+      barcodes: [{ barcode: 'BC-1', qty: 5 }],
+    })
   })
 })
 
@@ -127,13 +173,32 @@ describe('1tmt-workbench-context', () => {
     expect(injectedTexts(session)).toHaveLength(2)
   })
 
-  it('skips empty snapshots', async () => {
+  it('registers a read-only snapshot tool over the Host store', async () => {
     const { ctx, store } = await mount()
-    const session = Session.create(SessionId('s2'))
-    session.append('turn/start', { turn: 1 })
-    const agent = sessionAgent(session)
-    await store.publishSnapshot({ kind: 'empty', title: '', rows: [] })
-    await fire(ctx, agent)
-    expect(injectedTexts(session)).toHaveLength(0)
+    const missing = await ctx.tools.execute({
+      callId: ToolCallId('call-missing'),
+      name: GET_CUSTOM_WORKBENCH_SNAPSHOT,
+      arguments: {},
+      signal: SIGNAL,
+    })
+    expect(missing.isError).toBe(false)
+    expect(missing.value).toEqual({ present: false })
+
+    await store.publishSnapshot(formSample)
+    const hit = await ctx.tools.execute({
+      callId: ToolCallId('call-hit'),
+      name: GET_CUSTOM_WORKBENCH_SNAPSHOT,
+      arguments: {},
+      signal: SIGNAL,
+    })
+    expect(hit.isError).toBe(false)
+    expect(hit.value).toMatchObject({
+      present: true,
+      snapshot: {
+        kind: 'form',
+        form: { billNo: 'CGSL1', segment: 2 },
+        barcodes: [{ barcode: 'BC-1', qty: 5 }],
+      },
+    })
   })
 })

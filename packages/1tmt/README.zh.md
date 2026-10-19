@@ -26,7 +26,7 @@ kind: "package-group"
 |---|---|---|
 | [`vue/`](vue/README.zh.md) | 登录与自定义工作台 Element Plus 应用及挂载助手 | — |
 | [`workbench/`](workbench/README.zh.md) | 自定义工作台快照的 Host Remote 存储 | `tmtWorkbench` |
-| [`workbench-context/`](workbench-context/README.zh.md) | 在 `agent/pre-step` 注入最新快照摘要 | — |
+| [`workbench-context/`](workbench-context/README.zh.md) | `agent/pre-step` 注入，以及模型 tool `get_custom_workbench_snapshot` | — |
 
 -----
 

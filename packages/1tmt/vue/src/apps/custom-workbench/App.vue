@@ -67,11 +67,12 @@ const selectedEntryLabel = computed(() => {
   return `${labels.selectedPrefix}：${name}`
 })
 const summaryRows = computed(() => {
-  const rows: Array<{ key: string; material: string; barcode: string; qty: number }> = []
+  const rows: Array<{ key: string; entryId: number; material: string; barcode: string; qty: number }> = []
   for (const entry of entries.value) {
     for (const bc of entry.barcodes) {
       rows.push({
         key: `${entry.EntryId}-${bc.FBarcode}`,
+        entryId: entry.EntryId,
         material: entry.MaterialName || entry.MaterialNumber || '-',
         barcode: bc.FBarcode,
         qty: bc.FQty,
@@ -99,20 +100,34 @@ async function publishListSnapshot(): Promise<void> {
 }
 
 async function publishDetailSnapshot(): Promise<void> {
+  const selected = selectedEntry.value
   await bridge.publishSnapshot({
     kind: 'form',
     title: `${labels.menuPurReceive} ${billNo.value}`,
     rows: entries.value.map((entry) => ({
       entryId: entry.EntryId,
       material: entry.MaterialNumber,
+      materialName: entry.MaterialName,
       qty: entry.FActReceiveQty,
-      barcodes: entry.barcodes.length,
+      barcodeCount: entry.barcodes.length,
     })),
     form: {
       billId: billId.value,
       billNo: billNo.value,
       barcodeCount: summaryRows.value.length,
+      segment: receiveSegment.value,
+      selectedEntryIndex: selectedEntryIndex.value,
+      selectedEntryId: selected?.EntryId ?? null,
+      selectedMaterial: selected
+        ? (selected.MaterialName || selected.MaterialNumber || String(selected.EntryId))
+        : null,
     },
+    barcodes: summaryRows.value.map((row) => ({
+      entryId: row.entryId,
+      material: row.material,
+      barcode: row.barcode,
+      qty: row.qty,
+    })),
   })
 }
 
@@ -228,6 +243,14 @@ async function enterPurReceive(): Promise<void> {
 function selectEntry(index: number): void {
   if (index < 0 || index >= entries.value.length) return
   selectedEntryIndex.value = index
+  if (billId.value > 0) void publishDetailSnapshot()
+}
+
+/** Open 单据明细二 for one entry and refresh the model-facing snapshot. */
+function openBarcodeSegment(index: number): void {
+  selectEntry(index)
+  receiveSegment.value = 2
+  if (billId.value > 0) void publishDetailSnapshot()
 }
 
 function onSegmentChange(value: string | number | boolean | undefined): void {
@@ -242,6 +265,7 @@ function onSegmentChange(value: string | number | boolean | undefined): void {
     return
   }
   receiveSegment.value = next
+  if (billId.value > 0) void publishDetailSnapshot()
 }
 
 function entryRowClassName({ rowIndex }: { rowIndex: number }): string {
@@ -444,6 +468,7 @@ function listBillId(row: JsonRecord): number {
 function backOneLevel(): void {
   if (receiveSegment.value === 2) {
     receiveSegment.value = 1
+    if (billId.value > 0) void publishDetailSnapshot()
     return
   }
   if (receiveSegment.value === 1) void confirmLeaveDetail()
@@ -598,7 +623,7 @@ async function confirmLeaveDetail(): Promise<void> {
           </el-table-column>
           <el-table-column label="" width="110" fixed="right">
             <template #default="{ $index }">
-              <el-button link type="primary" @click="selectEntry($index); receiveSegment = 2">
+              <el-button link type="primary" @click="openBarcodeSegment($index)">
                 {{ labels.segBarcodes }}
               </el-button>
             </template>

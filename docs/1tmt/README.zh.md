@@ -9,7 +9,7 @@ kind: "reference"
 
 ## Summary
 
-本文面向在 1tmt 产品线上扩展 Harness 的开发者。先说明 **自定义工作台** 是什么、由哪些插件组成、如何与右侧对话并排工作；再说明 **Harness 如何把上下文交给模型**（硬规则与扩展点）和 **工作台快照插件** 的目的与数据路径；最后给出自研 UI（员工登录 / 自定义工作台）的日常改法与验收。1tmt 只自研两块界面：全屏 WMS 员工登录、侧栏「自定义工作台」入口打开的左侧业务区；二者用 Vue 3 + Element Plus 写在 `packages/1tmt/vue`，右侧对话与 DeepSeek 账户登录仍是 Harness 原生 React。
+本文面向在 1tmt 产品线上扩展 Harness 的开发者。先说明 **自定义工作台** 是什么、由哪些插件组成、如何与右侧对话并排工作；再说明 **Harness 如何把上下文交给模型**（硬规则与扩展点）和 **工作台快照插件** 的目的与数据路径；最后给出自研 UI（员工登录 / 自定义工作台）的日常改法与验收。1tmt 只自研两块界面：全屏 harness中台登录、侧栏「自定义工作台」入口打开的左侧业务区；二者用 Vue 3 + Element Plus 写在 `packages/1tmt/vue`，右侧对话与 DeepSeek 账户登录仍是 Harness 原生 React。
 
 ## Table of Contents
 
@@ -269,7 +269,7 @@ await bridge.publishSnapshot({
 | 员工登录表单 / 样式 / 交互 | `packages/1tmt/vue/src/apps/login/` | `packages/client/ui-settings-account`（DeepSeek 账户登录） |
 | 自定义工作台业务页 | `packages/1tmt/vue/src/apps/custom-workbench/` | Conversation、侧栏框架、设置页主体 |
 | 工作台 → 模型上下文 | Vue `publishSnapshot` + 上表两个 Host 插件 | agent-loop、ui-layout、读 DOM |
-| 登录调后端 / MCP | Bridge + `packages/api/pgy-login`（Host Remote） | 直接在 Vue 里 `import` Cordis / `ctx` |
+| 登录调后端 / MCP | Bridge + `packages/api/kde-harness-mp-login`（Host Remote） | 直接在 Vue 里 `import` Cordis / `ctx` |
 | 侧栏「自定义工作台」图标、入口文案 | `packages/client/ui-custom-workbench`（外壳） | 把整站迁到 Vue |
 
 架构关系：
@@ -277,7 +277,7 @@ await bridge.publishSnapshot({
 ```mermaid
 flowchart LR
   subgraph react [Harness React shells]
-    pgyHost[ui-pgy-login]
+    loginHost[ui-kde-harness-mp-login]
     customHost[ui-custom-workbench]
     conv[Conversation right]
   end
@@ -289,7 +289,7 @@ flowchart LR
     workbench[tmtWorkbench]
     ctxPlugin[workbench-context]
   end
-  pgyHost -->|mountLogin + LoginBridge| loginApp
+  loginHost -->|mountLogin + LoginBridge| loginApp
   customHost -->|mountCustomWorkbench + CustomWorkbenchBridge| customApp
   customApp -->|publishSnapshot| customHost
   customHost -->|Remote| workbench
@@ -314,9 +314,9 @@ packages/1tmt/vue/                     # Product UI (npm: @deepseek-ai/dsh-1tmt-
 
 packages/1tmt/workbench/               # Host Remote: snapshot store (ctx.tmtWorkbench)
 packages/1tmt/workbench-context/       # agent/pre-step: inject changed snapshots
-packages/client/ui-pgy-login/          # Login shell: Bridge + mount/unmount
+packages/client/ui-kde-harness-mp-login/          # Login shell: Bridge + mount/unmount
 packages/client/ui-custom-workbench/   # Workbench shell: sidebar + Bridge → Remote
-packages/api/pgy-login/                # Host Remote: orgs, WMS login, backend URL
+packages/api/kde-harness-mp-login/                # Host Remote: orgs, Harness platform login, backend URL
 packages/api/remotes/                  # Client Remote assembly (includes tmtWorkbench)
 docs/1tmt/README.md                    # This guide
 ```
@@ -333,7 +333,7 @@ docs/1tmt/README.md                    # This guide
 pnpm --filter @deepseek-ai/dsh-1tmt-vue build
 
 # 2. Bundle client shells (rebuild even for CSS/copy tweaks to avoid stale lib)
-pnpm --filter @deepseek-ai/dsh-client-ui-pgy-login bundle
+pnpm --filter @deepseek-ai/dsh-client-ui-kde-harness-mp-login bundle
 pnpm --filter @deepseek-ai/dsh-client-ui-custom-workbench bundle
 
 # 3. After workbench Host source edits: tsc, then Host tsdown (emits typert remote)
@@ -353,7 +353,7 @@ pnpm dsh web --no-open
 pnpm exec vitest run packages/1tmt/vue/tests/mount.spec.ts
 pnpm exec vitest run packages/1tmt/workbench/tests
 pnpm exec vitest run packages/1tmt/workbench-context/tests
-pnpm exec vitest run packages/client/ui-pgy-login/tests/login-overlay.client.spec.tsx
+pnpm exec vitest run packages/client/ui-kde-harness-mp-login/tests/login-overlay.client.spec.tsx
 pnpm exec vitest run packages/client/ui-custom-workbench/tests
 ```
 
@@ -365,11 +365,11 @@ pnpm exec vitest run packages/client/ui-custom-workbench/tests
 1. 编辑 `packages/1tmt/vue/src/apps/login/App.vue`（表单）和 `app.css`（样式）。
 2. 组件里用 Element Plus；文案用 `bridge.labels.*`，不要写死中文（便于壳层 i18n）。
 3. 需要新字段或新接口时，先扩 `LoginBridge`（见下一节），再在 Vue 里调用。
-4. `build` → `ui-pgy-login bundle` → `dsh web`，确认全屏门仍是 Element Plus，且 **设置里的 DeepSeek 账户登录未变**。
+4. `build` → `ui-kde-harness-mp-login bundle` → `dsh web`，确认全屏门仍是 Element Plus，且 **设置里的 DeepSeek 账户登录未变**。
 
-登录流程由 Vue 驱动：`status` →（可选）后端地址 → `listOrganizations` → `wmsLogin` → `refreshSessions` → `onLoggedIn()`。成功后由 React 壳拆掉 portal。
+登录流程由 Vue 驱动：`status` →（可选）后端地址 → `listOrganizations` → `harnessLogin` → `refreshSessions` → `onLoggedIn()`。成功后由 React 壳拆掉 portal。
 
-设置页「harness 中台」与侧栏「退出登录」仍在 `ui-pgy-login` 的 React 组件里；本轮不迁 Vue。
+设置页「harness 中台」与侧栏「退出登录」仍在 `ui-kde-harness-mp-login` 的 React 组件里；本轮不迁 Vue。
 
 -----
 
@@ -379,7 +379,7 @@ pnpm exec vitest run packages/client/ui-custom-workbench/tests
 1. 业务 UI 写在 `packages/1tmt/vue/src/apps/custom-workbench/`（`App.vue`、`stk-input.ts`、CSS）。**新业务模块只加工作台首页图标入口**（点图标整页进入业务，类似 RuoYi-App 工作台），不要再注册 `sidebar.panellist`。
 2. 侧栏只保留「自定义工作台」一个 1tmt 业务入口；点开后 AppFrame 左右分屏（面板 id = `custom-workbench`，原理见 [原理总览](#custom-workbench-overview)）。默认是图标首页，点「采购入库」进入分段页：主列表、单据明细一、单据明细二。条码按收料单内码和分录内码匹配并选中明细行。
 3. 侧栏入口文案/图标：`packages/client/ui-custom-workbench/src/client/locales.ts`、`CustomWorkbenchIcon.tsx`。
-4. Host 能力经 Bridge：`publishSnapshot` / `clearSnapshot`（`tmtWorkbench`）以及采购入库 `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport`（`pgyPurReceive`，仅 MCP）。
+4. Host 能力经 Bridge：`publishSnapshot` / `clearSnapshot`（`tmtWorkbench`）以及采购入库 `listBills` / `viewBill` / `entityOutputs` / `getBarcode` / `getStockInfo` / `submitReport`（`kdeHarnessMpPurReceive`，仅 MCP）。
 5. 列表或单据变化后调用 `bridge.publishSnapshot(...)`，对话侧才会在下一轮 pre-step 读到（原理见上文「工作台快照插件」）。
 
 采购入库路径：查收料列表 → 打开详情（View + 明细扩展）→ 手工录仓位码/条码 → 确认入库同步提交（无 PDA 队列、无开发者模式）。DTO 在 Vue `stk-input.ts` 拼装。
@@ -393,9 +393,9 @@ Vue **不能**直接碰 `ctx`。正确路径：
 
 1. 在 `packages/1tmt/vue/src/bridge.ts` 与 `types/index.d.ts` 增加方法/字段（两边保持一致）。
 2. 在外壳组装 Bridge：
-   - 登录：`packages/client/ui-pgy-login/src/client/LoginOverlay.tsx`（及 `index.ts` 的 `inject`）
+   - 登录：`packages/client/ui-kde-harness-mp-login/src/client/LoginOverlay.tsx`（及 `index.ts` 的 `inject`）
    - 工作台：`packages/client/ui-custom-workbench/src/client/CustomWorkbenchPage.tsx`（需要时给插件加 `inject` 依赖）
-3. 若能力尚不存在：先在 Host 包实现 Remote（如 `pgy-login`、`1tmt-workbench`），再接到外壳；Client Remote 需在 `dsh-api-remotes` 挂载。
+3. 若能力尚不存在：先在 Host 包实现 Remote（如 `kde-harness-mp-login`、`1tmt-workbench`），再接到外壳；Client Remote 需在 `dsh-api-remotes` 挂载。
 4. Vue 内：`const bridge = inject<YourBridge>('1tmtBridge')`，只调用 Bridge。
 
 `BridgeResult<T>` 与 Typert `RemoteResult` 对齐：`{ ok: true, value }` / `{ ok: false, error: { message } }`。外壳可直接把 Remote 结果传给 Vue。
@@ -407,7 +407,7 @@ Vue **不能**直接碰 `ctx`。正确路径：
 
 | 文案位置 | 文件 |
 |---|---|
-| 登录 labels（传给 Vue） | `packages/client/ui-pgy-login/src/client/locales.ts` |
+| 登录 labels（传给 Vue） | `packages/client/ui-kde-harness-mp-login/src/client/locales.ts` |
 | 工作台标题、侧栏「自定义工作台」、采购入库页文案 | `packages/client/ui-custom-workbench/src/client/locales.ts`（命名空间 `customWorkbench`） |
 
 Vue 侧只读 `bridge.labels`，不要在 `.vue` 里硬编码产品文案。
@@ -418,7 +418,7 @@ Vue 侧只读 `bridge.labels`，不要在 `.vue` 里硬编码产品文案。
 ## 验收清单
 
 - [ ] `pnpm --filter @deepseek-ai/dsh-1tmt-vue build` 成功
-- [ ] `ui-pgy-login` / `ui-custom-workbench` 两个 host `bundle` 成功
+- [ ] `ui-kde-harness-mp-login` / `ui-custom-workbench` 两个 host `bundle` 成功
 - [ ] Host 侧存在 `packages/1tmt/workbench/lib/typert.remote-client.js`（Remote 已生成）
 - [ ] `dsh web`：全屏员工登录为 Element Plus（可用 DevTools 看 `.el-card` / `style#dsh-1tmt-element-plus`）
 - [ ] 登录后点「自定义工作台」：左 Vue（含采购管理 → 采购入库）、右原生对话；列表查询会 `publishSnapshot`
@@ -441,6 +441,7 @@ Vue 侧只读 `bridge.labels`，不要在 `.vue` 里硬编码产品文案。
 - 浏览器外壳：[`packages/client/ui-custom-workbench/README.md`](../../packages/client/ui-custom-workbench/README.zh.md)
 - 对照样例 time-context：[`packages/context/time-context/README.md`](../../packages/context/time-context/README.zh.md)
 - Web Client 壳层：[`docs/subsystems/web-client.md`](../subsystems/web-client.zh.md)
-- 1tmt MCP / WMS 登录集成：[`docs/1tmt-ruoyi-wms-integration.md`](../1tmt-ruoyi-wms-integration.zh.md)
-- 集成提交说明：[`docs/1tmt-pgy-version-notes.md`](../1tmt-pgy-version-notes.zh.md)
-- 1tmt MCP 工具在 RuoYi 仓库 `1tmt-kde-pgy`（与本 UI / 上下文文档分离）
+- 1tmt MCP / harness中台登录集成：[`docs/1tmt-ruoyi-wms-integration.md`](../1tmt-ruoyi-wms-integration.zh.md)
+- 集成提交说明：[`docs/1tmt-kde-harness-mp-version-notes.md`](../1tmt-kde-harness-mp-version-notes.zh.md)
+- 1tmt MCP 工具在 RuoYi 仓库 `1tmt-kde-deepseek-harness-mp`（与本 UI / 上下文文档分离）
+- 自研插件、Remote、快照 tool 与 MCP 名称：[`docs/1tmt/inventory.md`](./inventory.zh.md)

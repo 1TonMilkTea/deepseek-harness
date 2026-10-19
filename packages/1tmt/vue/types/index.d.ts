@@ -44,10 +44,10 @@ export interface LoginBridge {
   getBackendConfig(): Promise<BridgeResult<LoginBackendConfig>>
   setBackendConfig(request: { readonly baseUrl: string }): Promise<BridgeResult<LoginBackendConfig>>
   listOrganizations(): Promise<BridgeResult<{ readonly organizations: readonly LoginOrganization[] }>>
-  wmsLogin(request: {
+  harnessLogin(request: {
     readonly orgId: number
     readonly staffNumber: string
-    readonly wmsPassword: string
+    readonly password: string
   }): Promise<BridgeResult<unknown>>
   refreshSessions(): Promise<void>
   /** Tell the React host to tear down the fullscreen portal. */
@@ -102,6 +102,8 @@ export interface CustomWorkbenchSnapshot {
   readonly title: string
   readonly rows: readonly CustomWorkbenchRow[]
   readonly form?: CustomWorkbenchRow
+  /** Scanned barcode lines for form kind (单据明细二). */
+  readonly barcodes?: readonly CustomWorkbenchRow[]
 }
 
 /** Logged-in employee identity needed to assemble STK submit input. */

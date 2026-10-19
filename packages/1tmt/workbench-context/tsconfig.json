@@ -12,7 +12,9 @@
     { "path": "../../../vendor/schemastery" },
     { "path": "../workbench/tsconfig.host.json" },
     { "path": "../../core/agent" },
+    { "path": "../../core/tools" },
     { "path": "../../llm/llm" },
-    { "path": "../../session/session-projection" }
+    { "path": "../../session/session-projection" },
+    { "path": "../../util/values" }
   ]
 }

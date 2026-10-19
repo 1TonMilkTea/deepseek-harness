@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-1tmt-workbench-context",
-  "description": "Inject the latest 1tmt custom-workbench snapshot into model requests on agent/pre-step",
+  "description": "Inject the latest 1tmt custom-workbench snapshot into model requests and expose a read-only snapshot tool",
   "version": "0.2.1-alpha.1",
   "publishConfig": {
     "access": "public"
@@ -35,7 +35,9 @@
     "@deepseek-ai/dsh-1tmt-workbench": "workspace:*",
     "@deepseek-ai/dsh-agent": "workspace:*",
     "@deepseek-ai/dsh-llm": "workspace:*",
-    "@deepseek-ai/dsh-session-projection": "workspace:*"
+    "@deepseek-ai/dsh-session-projection": "workspace:*",
+    "@deepseek-ai/dsh-tools": "workspace:*",
+    "@deepseek-ai/dsh-util-values": "workspace:*"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "workspace:~",
@@ -44,6 +46,9 @@
     "@deepseek-ai/dsh-agent-loop-testkit": "workspace:*",
     "@deepseek-ai/dsh-llm": "workspace:*",
     "@deepseek-ai/dsh-session": "workspace:*",
-    "@deepseek-ai/dsh-session-projection": "workspace:*"
+    "@deepseek-ai/dsh-session-projection": "workspace:*",
+    "@deepseek-ai/dsh-system-prompt": "workspace:*",
+    "@deepseek-ai/dsh-tools": "workspace:*",
+    "@deepseek-ai/dsh-util-values": "workspace:*"
   }
 }

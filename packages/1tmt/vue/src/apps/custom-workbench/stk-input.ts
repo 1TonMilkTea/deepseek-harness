@@ -60,7 +60,8 @@ export function mapEntityRows(rows: readonly unknown[]): EntryRow[] {
   for (const row of rows) {
     if (row === null || typeof row !== 'object' || Array.isArray(row)) continue
     const raw = row as JsonRecord
-    const entryId = pickK3RefId(raw.Id ?? raw.EntryId ?? raw.FEntryId)
+    // Prefer entry ids; `Id` on entity-output rows is the bill id.
+    const entryId = pickK3RefId(raw.EntryId ?? raw.FEntryId ?? raw.Id)
     if (entryId <= 0) continue
     const materialRef = (raw.MaterialID ?? raw.MaterialId ?? {}) as JsonRecord
     const stockRef = (raw.StockID ?? raw.StockId ?? raw.FStockId ?? {}) as JsonRecord
@@ -71,7 +72,9 @@ export function mapEntityRows(rows: readonly unknown[]): EntryRow[] {
       MaterialId: pickK3RefId(materialRef) || pickK3RefId(raw.MaterialID_Id),
       MaterialNumber: String(materialRef.Number ?? raw.MaterialNumber ?? '').trim(),
       MaterialName: String(materialRef.Name ?? raw.MaterialName ?? '').trim(),
-      FActReceiveQty: Number(raw.FActReceiveQty ?? raw.MustQty ?? raw.FMustQty ?? 0) || 0,
+      FActReceiveQty: Number(
+        raw.ActReceiveQty ?? raw.FActReceiveQty ?? raw.MustQty ?? raw.FMustQty ?? 0,
+      ) || 0,
       StockId: pickK3RefId(stockRef) || pickK3RefId(raw.StockID_Id),
       StockName: String(stockRef.Name ?? raw.StockName ?? '').trim(),
       StockLocId: pickK3RefId(stockLocRef) || pickK3RefId(raw.StockLocId_Id),
@@ -189,7 +192,7 @@ export function buildStkInStockRecordReportInput(
 }
 
 /**
- * Extract the View document object from a `pgyKdeViewBill` payload.
+ * Extract the View document object from a `kdeViewBill` payload.
  * @param payload - MCP/Remote result
  * @returns bill document or null
  */

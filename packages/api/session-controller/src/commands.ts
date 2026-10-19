@@ -98,12 +98,12 @@ export class SessionCommandController {
   ) {}
 
   /**
-   * Refuse Session mutations and cold list/search when WMS login is required.
+   * Refuse Session mutations and cold list/search when Harness platform login is required.
    */
   assertLoggedIn(): void {
-    const gate = this.ctx.get('pgyLogin') as { isLoggedIn(): boolean } | undefined
+    const gate = this.ctx.get('kdeHarnessMpLogin') as { isLoggedIn(): boolean } | undefined
     if (gate !== undefined && !gate.isLoggedIn()) {
-      throw new RemoteError('pgy/login-required', 'WMS login is required before using this session', {})
+      throw new RemoteError('kde-harness-mp/login-required', 'Harness platform login is required before using this session', {})
     }
   }
 

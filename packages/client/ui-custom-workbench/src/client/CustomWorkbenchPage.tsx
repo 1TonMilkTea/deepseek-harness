@@ -14,7 +14,7 @@ import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   CustomWorkbenchPublishResult,
 } from '@deepseek-ai/dsh-1tmt-workbench/client'
-import type { PgyMcpObject } from '@deepseek-ai/dsh-api-pgy-pur-receive/types'
+import type { KdeHarnessMpMcpObject } from '@deepseek-ai/dsh-api-kde-harness-mp-pur-receive/types'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import css from './CustomWorkbenchPage.module.css'
 
@@ -27,27 +27,27 @@ export interface CustomWorkbenchPageInjected {
     readonly filterString?: string
     readonly limit?: number
     readonly startRow?: number
-  }) => Promise<RemoteResult<PgyMcpObject>>
+  }) => Promise<RemoteResult<KdeHarnessMpMcpObject>>
   readonly viewBill: (request: {
     readonly formId: string
     readonly id: number
-  }) => Promise<RemoteResult<PgyMcpObject>>
+  }) => Promise<RemoteResult<KdeHarnessMpMcpObject>>
   readonly entityOutputs: (request: {
     readonly orgId?: number
     readonly id?: number
     readonly billNo?: string
-  }) => Promise<RemoteResult<PgyMcpObject>>
+  }) => Promise<RemoteResult<KdeHarnessMpMcpObject>>
   readonly getBarcode: (request: {
     readonly orgId?: number
     readonly barcode: string
-  }) => Promise<RemoteResult<PgyMcpObject>>
+  }) => Promise<RemoteResult<KdeHarnessMpMcpObject>>
   readonly getStockInfo: (request: {
     readonly orgId?: number
     readonly number: string
-  }) => Promise<RemoteResult<PgyMcpObject>>
+  }) => Promise<RemoteResult<KdeHarnessMpMcpObject>>
   readonly submitReport: (request: {
     readonly inputJson: string
-  }) => Promise<RemoteResult<PgyMcpObject>>
+  }) => Promise<RemoteResult<KdeHarnessMpMcpObject>>
 }
 
 /** Framework props for the custom workbench main panel. */
@@ -63,7 +63,7 @@ function toBridgeResult<T>(result: RemoteResult<T>):
   return { ok: false, error: { message: result.error.message } }
 }
 
-function asWorkbenchObject(value: PgyMcpObject): WorkbenchMcpObject {
+function asWorkbenchObject(value: KdeHarnessMpMcpObject): WorkbenchMcpObject {
   return value as WorkbenchMcpObject
 }
 

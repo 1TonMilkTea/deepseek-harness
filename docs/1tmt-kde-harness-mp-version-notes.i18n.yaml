@@ -1,0 +1,52 @@
+# Bilingual-pair consistency record for 1tmt-kde-harness-mp-version-notes.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/1tmt-kde-harness-mp-version-notes.md
+/1tmt-puyuan-harness-version-notes-developers:
+  en: c5dd353f1e5b59ac
+  zh: a0c960b3d3b0c07e
+/1tmt-puyuan-harness-version-notes-developers/overview-what-shipped:
+  en: 1b26c7e5cbf0d81a
+  zh: b60e64266e886dc9
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological:
+  en: c030024cd79c44fb
+  zh: ed79036bf3a81146
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/258a332-wire-ruoyi-mcp-into-dsh-web-and-ship-a-windows-portable-zip:
+  en: d4b552cf2725fce3
+  zh: da303574bf87a4ed
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/1626d69-rename-the-mcp-client-namespace-to-1tmt:
+  en: 2c9a9483bdb61305
+  zh: 54fe13c4fb64d6d3
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/8e24320-document-which-mcp-tools-dsh-web-connects-to:
+  en: 949d5eeb3d480092
+  zh: dd21e499f97cbbcf
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/ff538cc-harness-platform-login-inno-installer-portable-zip-keeps-dev-deps:
+  en: bca918a9ca2f5ef5
+  zh: 42f6e3d562ce047c
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/229e198-note-cross-machine-ruoyi-mcp-url-in-cmd:
+  en: 965719e2dcfe9464
+  zh: c826d3d178bcc742
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/9297dc4-truck-brand-icons-kingdee-rules-first-agent-convention:
+  en: 86bd605e22745772
+  zh: bc36e48a95d4f231
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/b3cc4f2-per-employee-local-sessions-sidebar-sign-out:
+  en: b691f2a6f719c66e
+  zh: 31d0253209918648
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/15b5bb9-revert-unrelated-persistence-readme-typecheck:
+  en: 92d38964704c0997
+  zh: d4ccef0f624e727b
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/0b37d21-fix-logout-bindroot-vs-write-handle-race:
+  en: 56c6731c4f79f8b3
+  zh: 33a877333cd741eb
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/desktop-installer-electron-shell-replaces-portable-zip-bat-inno:
+  en: 4e5c7307291c83cf
+  zh: 20ff33282da92c41
+/1tmt-puyuan-harness-version-notes-developers/per-commit-notes-chronological/client-scoped-mcp-session-tokens-page-configured-ruoyi-url:
+  en: 4567a3d72d4d7321
+  zh: b1b6f2ebd4349383
+/1tmt-puyuan-harness-version-notes-developers/developer-verification-checklist:
+  en: 8c7080c120f00678
+  zh: d3dc74a01fcf9b95
+/1tmt-puyuan-harness-version-notes-developers/related-code-map:
+  en: a631204f54754d13
+  zh: 9b77e41dd2c0b6b4

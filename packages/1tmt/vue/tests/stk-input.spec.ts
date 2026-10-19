@@ -15,16 +15,19 @@ describe('stk-input helpers', () => {
   it('maps entity rows and matches barcodes by bill+entry', () => {
     const entries = mapEntityRows([
       {
-        Id: 101,
+        Id: 271157,
+        EntryId: 101,
         Seq: 1,
         MaterialID: { Id: 9, Number: 'M1', Name: '物料1' },
-        FActReceiveQty: 10,
+        ActReceiveQty: 10,
         StockID: { Id: 2, Name: '仓A' },
         StockLocId: { Id: 3, Name: '位1' },
         UnitId: 7,
       },
     ])
     expect(entries).toHaveLength(1)
+    expect(entries[0]?.EntryId).toBe(101)
+    expect(entries[0]?.FActReceiveQty).toBe(10)
     expect(entries[0]?.MaterialNumber).toBe('M1')
     expect(findEntryIndexForBarcode(55, entries, {
       ReceiveBillId: 55,
@@ -38,7 +41,8 @@ describe('stk-input helpers', () => {
 
   it('builds STK report input with one barcode line', () => {
     const entries = mapEntityRows([{
-      Id: 101,
+      Id: 55,
+      EntryId: 101,
       Seq: 1,
       MaterialID: { Id: 9, Number: 'M1', Name: '物料1' },
       FActReceiveQty: 10,

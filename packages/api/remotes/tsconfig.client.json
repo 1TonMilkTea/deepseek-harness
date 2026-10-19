@@ -79,10 +79,10 @@
       "path": "../session-controller/tsconfig.client.json"
     },
     {
-      "path": "../pgy-login/tsconfig.client.json"
+      "path": "../kde-harness-mp-login/tsconfig.client.json"
     },
     {
-      "path": "../pgy-pur-receive/tsconfig.client.json"
+      "path": "../kde-harness-mp-pur-receive/tsconfig.client.json"
     },
     {
       "path": "../../1tmt/workbench/tsconfig.client.json"

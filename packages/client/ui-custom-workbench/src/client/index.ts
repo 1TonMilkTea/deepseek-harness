@@ -11,8 +11,8 @@ import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { MainPanelId } from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-1tmt-workbench/client'
-import type {} from '@deepseek-ai/dsh-api-pgy-login/client'
-import type {} from '@deepseek-ai/dsh-api-pgy-pur-receive/client'
+import type {} from '@deepseek-ai/dsh-api-kde-harness-mp-login/client'
+import type {} from '@deepseek-ai/dsh-api-kde-harness-mp-pur-receive/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
@@ -45,8 +45,8 @@ export const inject = [
   'locale',
   'remote',
   'remote.tmtWorkbench',
-  'remote.pgyLogin',
-  'remote.pgyPurReceive',
+  'remote.kdeHarnessMpLogin',
+  'remote.kdeHarnessMpPurReceive',
 ]
 
 /**
@@ -65,18 +65,18 @@ export function apply(ctx: ClientContext): void {
       publishSnapshot: snapshot => ctx.remote.tmtWorkbench.publishSnapshot(snapshot),
       clearSnapshot: () => ctx.remote.tmtWorkbench.clearSnapshot(),
       getEmployee: async () => {
-        const status = await ctx.remote.pgyLogin.status()
+        const status = await ctx.remote.kdeHarnessMpLogin.status()
         if (!status.ok) return status
         const employee = status.value.employee
         if (employee === undefined) return { ok: true, value: null }
         return { ok: true, value: employee }
       },
-      listBills: request => ctx.remote.pgyPurReceive.listBills(request),
-      viewBill: request => ctx.remote.pgyPurReceive.viewBill(request),
-      entityOutputs: request => ctx.remote.pgyPurReceive.entityOutputs(request),
-      getBarcode: request => ctx.remote.pgyPurReceive.getBarcode(request),
-      getStockInfo: request => ctx.remote.pgyPurReceive.getStockInfo(request),
-      submitReport: request => ctx.remote.pgyPurReceive.submitReport(request),
+      listBills: request => ctx.remote.kdeHarnessMpPurReceive.listBills(request),
+      viewBill: request => ctx.remote.kdeHarnessMpPurReceive.viewBill(request),
+      entityOutputs: request => ctx.remote.kdeHarnessMpPurReceive.entityOutputs(request),
+      getBarcode: request => ctx.remote.kdeHarnessMpPurReceive.getBarcode(request),
+      getStockInfo: request => ctx.remote.kdeHarnessMpPurReceive.getStockInfo(request),
+      submitReport: request => ctx.remote.kdeHarnessMpPurReceive.submitReport(request),
     }),
   }, CustomWorkbenchPage))
 
