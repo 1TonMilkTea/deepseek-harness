@@ -222,6 +222,21 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'schedule/update': 'owner-only', // owner schedules
   'subagents/interruptByParent': 'owner-only', // owner subagents
   'subagents/prompt': 'owner-only', // owner subagents
+  'kdeHarnessMpLogin/getBackendConfig': 'owner-only', // owner harness-platform backend URL
+  'kdeHarnessMpLogin/harnessLogin': 'owner-only', // owner harness-platform employee login
+  'kdeHarnessMpLogin/listOrganizations': 'owner-only', // owner harness-platform organization list
+  'kdeHarnessMpLogin/logout': 'owner-only', // owner harness-platform logout
+  'kdeHarnessMpLogin/setBackendConfig': 'owner-only', // owner harness-platform backend URL
+  'kdeHarnessMpLogin/status': 'owner-only', // owner harness-platform login status
+  'kdeHarnessMpPurReceive/entityOutputs': 'owner-only', // owner purchase-inbound entity rows
+  'kdeHarnessMpPurReceive/getBarcode': 'owner-only', // owner purchase-inbound barcode lookup
+  'kdeHarnessMpPurReceive/getStockInfo': 'owner-only', // owner purchase-inbound stock lookup
+  'kdeHarnessMpPurReceive/listBills': 'owner-only', // owner purchase-inbound bill list
+  'kdeHarnessMpPurReceive/submitReport': 'owner-only', // owner purchase-inbound report submit
+  'kdeHarnessMpPurReceive/viewBill': 'owner-only', // owner purchase-inbound bill view
+  'tmtWorkbench/clearSnapshot': 'owner-only', // owner custom-workbench snapshot
+  'tmtWorkbench/getSnapshot': 'owner-only', // owner custom-workbench snapshot
+  'tmtWorkbench/publishSnapshot': 'owner-only', // owner custom-workbench snapshot
 
   // Owner share management stays on the owner's own page; a `share-viewer` Peer is refused first.
   'liveshareShares/audit': 'owner-only',

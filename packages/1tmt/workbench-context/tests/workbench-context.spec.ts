@@ -74,6 +74,11 @@ function sessionAgent(session: Session): Agent {
     id: SessionId('agent'),
     options: {},
     session,
+    model: {
+      current: () => ({ provider: 'fixture', model: 'fixture-model' }),
+      select: () => {},
+      clear: () => {},
+    } as Agent['model'],
     inbox: unsupportedInbox(),
     status: 'running',
     ctx: new Context(),
@@ -94,7 +99,13 @@ async function fire(ctx: Context, agent: Agent): Promise<void> {
   })
   const decision = await agentEvents(ctx, agent).waterfall(
     'agent/pre-step',
-    { messages: [proposed], turn: 1, step: 1, signal: SIGNAL },
+    {
+      messages: [proposed],
+      turn: 1,
+      step: 1,
+      signal: SIGNAL,
+      modelSelection: { provider: 'fixture', model: 'fixture-model' },
+    },
     () => Promise.resolve({ kind: 'enter' as const, messages: [proposed] }),
   )
   if (decision.kind === 'enter') {

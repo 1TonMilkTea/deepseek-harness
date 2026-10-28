@@ -63,7 +63,7 @@ describe('Session creation failures', () => {
     const ctx = await baseContext()
     ctx.provide('workspaceRegistry', { get: () => undefined, list: () => [] } as never)
     ctx.provide('kdeHarnessMpLogin', { isLoggedIn: () => false } as never)
-    const controller = new SessionCommandController(ctx, controllerAgents(), '/default')
+    const controller = new SessionCommandController(ctx, controllerAgents(ctx), '/default')
 
     await expectFailure(controller.create({}), 'kde-harness-mp/login-required')
     await expectFailure(controller.fork({ sessionId: 'session-a' as SessionId }), 'kde-harness-mp/login-required')
@@ -320,7 +320,7 @@ describe('Session list and search login gate', () => {
   it('refuses list and search until Harness platform login succeeds', async () => {
     const ctx = await baseContext()
     ctx.provide('kdeHarnessMpLogin', { isLoggedIn: () => false } as never)
-    const remote = createSessionTestRemote(ctx, {
+    const remote = await createSessionTestRemote(ctx, {
       defaultModelSelection: () => ({ provider: 'p', model: 'm' }),
       cwd: '/default',
     })
