@@ -211,12 +211,20 @@ export class KdeHarnessMpPurReceiveController extends TypertRemoteService {
     args: Record<string, unknown>,
     signal: AbortSignal,
   ): Promise<KdeHarnessMpMcpObject> {
-    const result = await this.ctx.tools.execute({
-      callId: ToolCallId(`kde-harness-mp-pur-receive-${randomUUID()}`),
-      name: tool,
-      arguments: args,
+    const batch = await this.ctx.tools.execute({
+      calls: [{
+        type: 'tool-call',
+        id: ToolCallId(`kde-harness-mp-pur-receive-${randomUUID()}`),
+        name: tool,
+        arguments: JSON.stringify(args),
+      }],
       signal,
     })
+    const outcome = batch.results[0]
+    if (outcome === undefined) {
+      throw new RemoteError('kde-harness-mp/pur-receive-failed', `tool "${tool}" returned no result`, { tool })
+    }
+    const result = outcome.result
     if (result.isError) {
       throw new RemoteError('kde-harness-mp/pur-receive-failed', result.error.message, { tool })
     }

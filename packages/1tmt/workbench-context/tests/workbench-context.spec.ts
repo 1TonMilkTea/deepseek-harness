@@ -175,24 +175,32 @@ describe('1tmt-workbench-context', () => {
 
   it('registers a read-only snapshot tool over the Host store', async () => {
     const { ctx, store } = await mount()
-    const missing = await ctx.tools.execute({
-      callId: ToolCallId('call-missing'),
-      name: GET_CUSTOM_WORKBENCH_SNAPSHOT,
-      arguments: {},
+    const missingBatch = await ctx.tools.execute({
+      calls: [{
+        type: 'tool-call',
+        id: ToolCallId('call-missing'),
+        name: GET_CUSTOM_WORKBENCH_SNAPSHOT,
+        arguments: '{}',
+      }],
       signal: SIGNAL,
     })
-    expect(missing.isError).toBe(false)
-    expect(missing.value).toEqual({ present: false })
+    const missing = missingBatch.results[0]?.result
+    expect(missing?.isError).toBe(false)
+    expect(missing && !missing.isError ? missing.value : undefined).toEqual({ present: false })
 
     await store.publishSnapshot(formSample)
-    const hit = await ctx.tools.execute({
-      callId: ToolCallId('call-hit'),
-      name: GET_CUSTOM_WORKBENCH_SNAPSHOT,
-      arguments: {},
+    const hitBatch = await ctx.tools.execute({
+      calls: [{
+        type: 'tool-call',
+        id: ToolCallId('call-hit'),
+        name: GET_CUSTOM_WORKBENCH_SNAPSHOT,
+        arguments: '{}',
+      }],
       signal: SIGNAL,
     })
-    expect(hit.isError).toBe(false)
-    expect(hit.value).toMatchObject({
+    const hit = hitBatch.results[0]?.result
+    expect(hit?.isError).toBe(false)
+    expect(hit && !hit.isError ? hit.value : undefined).toMatchObject({
       present: true,
       snapshot: {
         kind: 'form',
